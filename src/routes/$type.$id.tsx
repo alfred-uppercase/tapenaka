@@ -1,7 +1,53 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { detailsQuery, type Item } from "@/lib/api";
+import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { detailsQuery, itemsQuery, type Item } from "@/lib/api";
 import { Poster, typeLabel } from "@/components/Poster";
+
+const STREAM_BASE = "https://streamwall.behoririka.mg";
+
+function watchUrl(type: string, tmdbId: string | number, saison?: string | null) {
+  if (type === "film") return `${STREAM_BASE}/movie/${tmdbId}`;
+  return `${STREAM_BASE}/serie/${tmdbId}/${saison || "1"}/1`;
+}
+
+function Modal({
+  onClose,
+  title,
+  fullScreen,
+  children,
+}: {
+  onClose: () => void;
+  title: string;
+  fullScreen?: boolean;
+  children: React.ReactNode;
+}) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    document.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [onClose]);
+
+  return (
+    <div className="fixed inset-0 z-50 flex flex-col bg-background/95 backdrop-blur-sm" role="dialog" aria-modal="true">
+      <div className="flex items-center gap-4 border-b border-border px-4 py-3">
+        <h2 className="truncate font-display text-lg font-semibold">{title}</h2>
+        <button
+          onClick={onClose}
+          aria-label="Fermer"
+          className="ml-auto flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-card text-xl leading-none ring-1 ring-border transition hover:bg-accent"
+        >
+          ×
+        </button>
+      </div>
+      <div className={fullScreen ? "flex-1" : "mx-auto flex w-full max-w-5xl flex-1 items-center p-4"}>{children}</div>
+    </div>
+  );
+}
 
 export const Route = createFileRoute("/$type/$id")({
   loader: ({ context, params }) => context.queryClient.ensureQueryData(detailsQuery(params.type, params.id)),
@@ -52,6 +98,14 @@ function Detail() {
   const { type, id } = Route.useParams();
   const { data } = useSuspenseQuery(detailsQuery(type, id));
   const item = data.item;
+  const [modal, setModal] = useState<"watch" | "trailer" | null>(null);
+
+  const firstGenre = item?.genre?.split(",")[0]?.trim() ?? "";
+  const { data: genreItems } = useQuery({
+    ...itemsQuery(item?.type ?? type, firstGenre),
+    enabled: firstGenre.length > 0,
+  });
+  const sameGenre = (genreItems ?? []).filter((g) => String(g.id) !== String(id)).slice(0, 12);
 
   if (!item) {
     return (
@@ -116,6 +170,24 @@ function Detail() {
             </div>
             {item.genre && <p className="text-sm text-muted-foreground">{item.genre}</p>}
             {item.descr && <p className="max-w-3xl text-sm leading-relaxed text-foreground/90">{item.descr}</p>}
+            <div className="mt-2 flex flex-wrap gap-3">
+              {item.tmdbId && (
+                <button
+                  onClick={() => setModal("watch")}
+                  className="flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-semibold text-primary-foreground transition hover:opacity-90"
+                >
+                  ▶ Regarder
+                </button>
+              )}
+              {item.trailer && (
+                <button
+                  onClick={() => setModal("trailer")}
+                  className="flex items-center gap-2 rounded-full bg-card px-6 py-3 font-semibold ring-1 ring-border transition hover:bg-accent"
+                >
+                  🎬 Bande-annonce
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </section>
@@ -178,6 +250,46 @@ function Detail() {
             ))}
           </div>
         </section>
+      )}
+
+      {/* Same genre */}
+      {sameGenre.length > 0 && (
+        <section className="mx-auto max-w-7xl px-4 py-10">
+          <h2 className="mb-4 font-display text-xl font-semibold">Dans le même genre</h2>
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+            {sameGenre.map((g) => (
+              <Poster key={g.id} item={g} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Watch modal (fullscreen) */}
+      {modal === "watch" && item.tmdbId && (
+        <Modal onClose={() => setModal(null)} title={`Vous regardez ${item.titre}`} fullScreen>
+          <iframe
+            src={watchUrl(item.type, item.tmdbId, item.saison)}
+            title={`Regarder — ${item.titre}`}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            className="h-full w-full border-0"
+          />
+        </Modal>
+      )}
+
+      {/* Trailer modal */}
+      {modal === "trailer" && item.trailer && (
+        <Modal onClose={() => setModal(null)} title={`Bande-annonce — ${item.titre}`}>
+          <div className="aspect-video w-full overflow-hidden rounded-xl ring-1 ring-border">
+            <iframe
+              src={`https://www.youtube.com/embed/${item.trailer}?autoplay=1`}
+              title={`Bande-annonce — ${item.titre}`}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              className="h-full w-full"
+            />
+          </div>
+        </Modal>
       )}
     </div>
   );
