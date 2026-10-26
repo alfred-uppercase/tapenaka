@@ -18,7 +18,6 @@ export type Episode = {
   titre?: string | null;
   saison?: string | number | null;
   episode?: string | number | null;
-  [key: string]: unknown;
 };
 export type Detail = {
   item: {
