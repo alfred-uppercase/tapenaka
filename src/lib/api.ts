@@ -25,6 +25,7 @@ export type Detail = {
     titre: string;
     descr: string | null;
     fsid?: string | null;
+    tmdbId?: string | number | null;
     qualite: string | null;
     langue: string | null;
     type: string;
