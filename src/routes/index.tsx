@@ -11,7 +11,7 @@ const TABS = [
   { v: "anime", l: "Animes" },
 ] as const;
 
-type Search = { type: string; q: string; qualite?: string; langue?: string };
+type Search = { type: string; q: string; qualite?: string | undefined; langue?: string | undefined };
 
 export const Route = createFileRoute("/")({
   validateSearch: (s: Record<string, unknown>): Search => ({
