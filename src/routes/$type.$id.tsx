@@ -1,7 +1,53 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { detailsQuery, type Item } from "@/lib/api";
+import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { detailsQuery, itemsQuery, type Item } from "@/lib/api";
 import { Poster, typeLabel } from "@/components/Poster";
+
+const STREAM_BASE = "https://streamwall.behoririka.mg";
+
+function watchUrl(type: string, tmdbId: string | number, saison?: string | null) {
+  if (type === "film") return `${STREAM_BASE}/movie/${tmdbId}`;
+  return `${STREAM_BASE}/serie/${tmdbId}/${saison || "1"}/1`;
+}
+
+function Modal({
+  onClose,
+  title,
+  fullScreen,
+  children,
+}: {
+  onClose: () => void;
+  title: string;
+  fullScreen?: boolean;
+  children: React.ReactNode;
+}) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    document.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [onClose]);
+
+  return (
+    <div className="fixed inset-0 z-50 flex flex-col bg-background/95 backdrop-blur-sm" role="dialog" aria-modal="true">
+      <div className="flex items-center gap-4 border-b border-border px-4 py-3">
+        <h2 className="truncate font-display text-lg font-semibold">{title}</h2>
+        <button
+          onClick={onClose}
+          aria-label="Fermer"
+          className="ml-auto flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-card text-xl leading-none ring-1 ring-border transition hover:bg-accent"
+        >
+          ×
+        </button>
+      </div>
+      <div className={fullScreen ? "flex-1" : "mx-auto flex w-full max-w-5xl flex-1 items-center p-4"}>{children}</div>
+    </div>
+  );
+}
 
 export const Route = createFileRoute("/$type/$id")({
   loader: ({ context, params }) => context.queryClient.ensureQueryData(detailsQuery(params.type, params.id)),
