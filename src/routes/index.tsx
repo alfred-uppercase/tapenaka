@@ -11,14 +11,14 @@ const TABS = [
   { v: "anime", l: "Animes" },
 ] as const;
 
-type Search = { type: string; q: string; qualite?: string | undefined; langue?: string | undefined };
+type Search = { type?: string | undefined; q?: string | undefined; qualite?: string | undefined; langue?: string | undefined };
 
 export const Route = createFileRoute("/")({
   validateSearch: (s: Record<string, unknown>): Search => ({
-    type: typeof s.type === "string" ? s.type : "all",
-    q: typeof s.q === "string" ? s.q : "",
-    qualite: typeof s.qualite === "string" ? s.qualite : undefined,
-    langue: typeof s.langue === "string" ? s.langue : undefined,
+    type: typeof s["type"] === "string" ? s["type"] : undefined,
+    q: typeof s["q"] === "string" ? s["q"] : undefined,
+    qualite: typeof s["q"]ualite === "string" ? s["q"]ualite : undefined,
+    langue: typeof s["langue"] === "string" ? s["langue"] : undefined,
   }),
   head: () => ({
     meta: [
@@ -34,17 +34,19 @@ export const Route = createFileRoute("/")({
 function Home() {
   const search = Route.useSearch();
   const navigate = useNavigate({ from: "/" });
-  const [text, setText] = useState(search.q);
+  const sType = search.type ?? "all";
+  const sQ = search.q ?? "";
+  const [text, setText] = useState(sQ);
 
   useEffect(() => {
     const t = setTimeout(() => {
-      if (text !== search.q) navigate({ search: (p) => ({ ...p, q: text }), replace: true });
+      if (text !== sQ) navigate({ search: (p) => ({ ...p, q: text }), replace: true });
     }, 350);
     return () => clearTimeout(t);
   }, [text]);
 
   const { data = [], isFetching, isError } = useQuery({
-    ...itemsQuery(search.type, search.q),
+    ...itemsQuery(sType, sQ),
     placeholderData: keepPreviousData,
   });
 
@@ -65,7 +67,7 @@ function Home() {
           <nav className="flex gap-1">
             {TABS.map((t) => (
               <button key={t.v} onClick={() => set({ type: t.v })}
-                className={search.type === t.v ? "chip chip-active" : "chip"}>{t.l}</button>
+                className={sType === t.v ? "chip chip-active" : "chip"}>{t.l}</button>
             ))}
           </nav>
           <input value={text} onChange={(e) => setText(e.target.value)} placeholder="Rechercher un titre…"
