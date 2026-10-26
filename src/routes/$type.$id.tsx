@@ -20,7 +20,6 @@ export const Route = createFileRoute("/$type/$id")({
         { property: "og:description", content: desc },
         ...(image ? [{ property: "og:image", content: image }, { name: "twitter:image", content: image }] : []),
       ],
-      links: params ? [] : [],
     };
   },
   component: Detail,
