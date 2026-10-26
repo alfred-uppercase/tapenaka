@@ -5,7 +5,7 @@ import { Poster, typeLabel } from "@/components/Poster";
 
 export const Route = createFileRoute("/$type/$id")({
   loader: ({ context, params }) => context.queryClient.ensureQueryData(detailsQuery(params.type, params.id)),
-  head: ({ loaderData, params }) => {
+  head: ({ loaderData }) => {
     const it = loaderData?.item;
     const title = it ? `${it.titre} — StreamWall` : "StreamWall";
     const desc = it
