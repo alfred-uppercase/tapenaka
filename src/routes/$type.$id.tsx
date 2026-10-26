@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { detailsQuery, type RelatedItem } from "@/lib/api";
+import { detailsQuery, type Item } from "@/lib/api";
 import { Poster, typeLabel } from "@/components/Poster";
 
 export const Route = createFileRoute("/$type/$id")({
