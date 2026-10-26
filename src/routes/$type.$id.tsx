@@ -66,7 +66,15 @@ function Detail() {
     );
   }
 
-  const related: (RelatedItem & { item_type: typeof type })[] = data.related.map((r) => ({ ...r, item_type: type }));
+  const related: Item[] = data.related.map((r) => ({
+    id: String(r.id),
+    titre: r.titre,
+    poster: r.poster ?? null,
+    qualite: null,
+    langue: null,
+    item_type: type as Item["item_type"],
+    saison: null,
+  }));
 
   return (
     <div className="min-h-screen">
