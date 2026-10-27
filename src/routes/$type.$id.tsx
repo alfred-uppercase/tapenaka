@@ -50,7 +50,7 @@ function Modal({
 }
 
 export const Route = createFileRoute("/$type/$id")({
-  loader: ({ context, params }) => context.queryClient.ensureQueryData(detailsQuery(params.type, params.id)),
+  loader: ({ params }) => fetchDetails({ data: { type: params.type, id: params.id } }),
   head: ({ loaderData }) => {
     const it = loaderData?.item;
     const title = it ? `${it.titre} — StreamWall` : "StreamWall";
@@ -96,7 +96,7 @@ function CastRow({ nom, photo, role }: { nom: string; photo: string; role: strin
 
 function Detail() {
   const { type, id } = Route.useParams();
-  const { data } = useSuspenseQuery(detailsQuery(type, id));
+  const data = Route.useLoaderData();
   const item = data.item;
   const [modal, setModal] = useState<"watch" | "trailer" | null>(null);
   const [mounted, setMounted] = useState(false);
