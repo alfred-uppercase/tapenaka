@@ -4,11 +4,9 @@ import { useEffect, useState } from "react";
 import { fetchDetails, itemsQuery, type Item } from "@/lib/api";
 import { Poster, typeLabel } from "@/components/Poster";
 
-const STREAM_BASE = "https://streamwall.behoririka.mg";
-
 function watchUrl(type: string, tmdbId: string | number, saison?: string | null) {
-  if (type === "film") return `${STREAM_BASE}/movie/${tmdbId}`;
-  return `${STREAM_BASE}/serie/${tmdbId}/${saison || "1"}/1`;
+  if (type === "film") return `/api/public/watch/movie/${tmdbId}`;
+  return `/api/public/watch/serie/${tmdbId}/${saison || "1"}/1`;
 }
 
 function Modal({
