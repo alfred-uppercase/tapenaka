@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TypeIdRouteImport } from './routes/$type.$id'
+import { Route as ApiPublicWatchSplatRouteImport } from './routes/api/public/watch.$'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -22,31 +23,40 @@ const TypeIdRoute = TypeIdRouteImport.update({
   path: '/$type/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicWatchSplatRoute = ApiPublicWatchSplatRouteImport.update({
+  id: '/api/public/watch/$',
+  path: '/api/public/watch/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$type/$id': typeof TypeIdRoute
+  '/api/public/watch/$': typeof ApiPublicWatchSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$type/$id': typeof TypeIdRoute
+  '/api/public/watch/$': typeof ApiPublicWatchSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/$type/$id': typeof TypeIdRoute
+  '/api/public/watch/$': typeof ApiPublicWatchSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/$type/$id'
+  fullPaths: '/' | '/$type/$id' | '/api/public/watch/$'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/$type/$id'
-  id: '__root__' | '/' | '/$type/$id'
+  to: '/' | '/$type/$id' | '/api/public/watch/$'
+  id: '__root__' | '/' | '/$type/$id' | '/api/public/watch/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   TypeIdRoute: typeof TypeIdRoute
+  ApiPublicWatchSplatRoute: typeof ApiPublicWatchSplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -65,12 +75,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TypeIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/watch/$': {
+      id: '/api/public/watch/$'
+      path: '/api/public/watch/$'
+      fullPath: '/api/public/watch/$'
+      preLoaderRoute: typeof ApiPublicWatchSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   TypeIdRoute: TypeIdRoute,
+  ApiPublicWatchSplatRoute: ApiPublicWatchSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
