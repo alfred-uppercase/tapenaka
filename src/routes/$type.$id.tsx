@@ -99,6 +99,8 @@ function Detail() {
   const { data } = useSuspenseQuery(detailsQuery(type, id));
   const item = data.item;
   const [modal, setModal] = useState<"watch" | "trailer" | null>(null);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   const firstGenre = item?.genre?.split(",")[0]?.trim() ?? "";
   const { data: genreItems } = useQuery({
