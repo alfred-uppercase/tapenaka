@@ -1,14 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { detailsQuery, itemsQuery, type Item } from "@/lib/api";
+import { fetchDetails, itemsQuery, type Item } from "@/lib/api";
 import { Poster, typeLabel } from "@/components/Poster";
 
-const STREAM_BASE = "https://streamwall.behoririka.mg";
-
 function watchUrl(type: string, tmdbId: string | number, saison?: string | null) {
-  if (type === "film") return `${STREAM_BASE}/movie/${tmdbId}`;
-  return `${STREAM_BASE}/serie/${tmdbId}/${saison || "1"}/1`;
+  if (type === "film") return `/api/public/watch/movie/${tmdbId}`;
+  return `/api/public/watch/serie/${tmdbId}/${saison || "1"}/1`;
 }
 
 function Modal({
@@ -50,7 +48,7 @@ function Modal({
 }
 
 export const Route = createFileRoute("/$type/$id")({
-  loader: ({ context, params }) => context.queryClient.ensureQueryData(detailsQuery(params.type, params.id)),
+  loader: ({ params }) => fetchDetails({ data: { type: params.type, id: params.id } }),
   head: ({ loaderData }) => {
     const it = loaderData?.item;
     const title = it ? `${it.titre} — StreamWall` : "StreamWall";
@@ -96,9 +94,11 @@ function CastRow({ nom, photo, role }: { nom: string; photo: string; role: strin
 
 function Detail() {
   const { type, id } = Route.useParams();
-  const { data } = useSuspenseQuery(detailsQuery(type, id));
+  const data = Route.useLoaderData();
   const item = data.item;
   const [modal, setModal] = useState<"watch" | "trailer" | null>(null);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   const firstGenre = item?.genre?.split(",")[0]?.trim() ?? "";
   const { data: genreItems } = useQuery({
@@ -253,7 +253,7 @@ function Detail() {
       )}
 
       {/* Same genre */}
-      {sameGenre.length > 0 && (
+      {mounted && sameGenre.length > 0 && (
         <section className="mx-auto max-w-7xl px-4 py-10">
           <h2 className="mb-4 font-display text-xl font-semibold">Dans le même genre</h2>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
