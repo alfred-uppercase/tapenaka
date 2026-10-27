@@ -255,7 +255,7 @@ function Detail() {
       )}
 
       {/* Same genre */}
-      {sameGenre.length > 0 && (
+      {mounted && sameGenre.length > 0 && (
         <section className="mx-auto max-w-7xl px-4 py-10">
           <h2 className="mb-4 font-display text-xl font-semibold">Dans le même genre</h2>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
