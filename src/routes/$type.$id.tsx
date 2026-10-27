@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { detailsQuery, itemsQuery, type Item } from "@/lib/api";
+import { fetchDetails, itemsQuery, type Item } from "@/lib/api";
 import { Poster, typeLabel } from "@/components/Poster";
 
 const STREAM_BASE = "https://streamwall.behoririka.mg";
