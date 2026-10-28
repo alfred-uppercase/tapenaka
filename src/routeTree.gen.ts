@@ -9,19 +9,24 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as TypeIdRouteImport } from './routes/$type.$id'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedTypeIdRouteImport } from './routes/_authenticated/$type.$id'
 import { Route as ApiPublicWatchSplatRouteImport } from './routes/api/public/watch.$'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TypeIdRoute = TypeIdRouteImport.update({
+const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedTypeIdRoute = AuthenticatedTypeIdRouteImport.update({
   id: '/$type/$id',
   path: '/$type/$id',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const ApiPublicWatchSplatRoute = ApiPublicWatchSplatRouteImport.update({
   id: '/api/public/watch/$',
@@ -30,19 +35,20 @@ const ApiPublicWatchSplatRoute = ApiPublicWatchSplatRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/$type/$id': typeof TypeIdRoute
+  '/': typeof AuthenticatedIndexRoute
+  '/$type/$id': typeof AuthenticatedTypeIdRoute
   '/api/public/watch/$': typeof ApiPublicWatchSplatRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/$type/$id': typeof TypeIdRoute
+  '/': typeof AuthenticatedIndexRoute
+  '/$type/$id': typeof AuthenticatedTypeIdRoute
   '/api/public/watch/$': typeof ApiPublicWatchSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/$type/$id': typeof TypeIdRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/$type/$id': typeof AuthenticatedTypeIdRoute
   '/api/public/watch/$': typeof ApiPublicWatchSplatRoute
 }
 export interface FileRouteTypes {
@@ -50,30 +56,41 @@ export interface FileRouteTypes {
   fullPaths: '/' | '/$type/$id' | '/api/public/watch/$'
   fileRoutesByTo: FileRoutesByTo
   to: '/' | '/$type/$id' | '/api/public/watch/$'
-  id: '__root__' | '/' | '/$type/$id' | '/api/public/watch/$'
+  id:
+    | '__root__'
+    | '/_authenticated'
+    | '/_authenticated/'
+    | '/_authenticated/$type/$id'
+    | '/api/public/watch/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  TypeIdRoute: typeof TypeIdRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   ApiPublicWatchSplatRoute: typeof ApiPublicWatchSplatRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/$type/$id': {
-      id: '/$type/$id'
+    '/_authenticated/': {
+      id: '/_authenticated/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/$type/$id': {
+      id: '/_authenticated/$type/$id'
       path: '/$type/$id'
       fullPath: '/$type/$id'
-      preLoaderRoute: typeof TypeIdRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedTypeIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/api/public/watch/$': {
       id: '/api/public/watch/$'
@@ -85,9 +102,21 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedTypeIdRoute: typeof AuthenticatedTypeIdRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+  AuthenticatedTypeIdRoute: AuthenticatedTypeIdRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  TypeIdRoute: TypeIdRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   ApiPublicWatchSplatRoute: ApiPublicWatchSplatRoute,
 }
 export const routeTree = rootRouteImport

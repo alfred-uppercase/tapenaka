@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { queryOptions } from "@tanstack/react-query";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 export type ItemType = "film" | "serie" | "anime";
 export type Item = {
@@ -10,6 +11,8 @@ export type Item = {
   langue: string | null;
   item_type: ItemType;
   saison: string | null;
+  genre?: string | null;
+  annee?: number | null;
 };
 
 export type CastMember = { nom: string; photo: string; role: string };
@@ -45,6 +48,7 @@ const BASE = "https://streamwall.behoririka.mg/api_home.php";
 const BASE_DETAILS = "https://streamwall.behoririka.mg/details_api.php";
 
 export const fetchItems = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d: { type: string; q: string }) => ({
     type: ["all", "film", "serie", "anime"].includes(d.type) ? d.type : "all",
     q: String(d.q ?? "").slice(0, 100),
@@ -53,10 +57,25 @@ export const fetchItems = createServerFn({ method: "GET" })
     const res = await fetch(`${BASE}?type=${data.type}&q=${encodeURIComponent(data.q)}`);
     if (!res.ok) throw new Error("API indisponible");
     const json = (await res.json()) as { items?: Item[] };
-    return json.items ?? [];
+    const items = json.items ?? [];
+    // The home API omits genre/year; enrich its current catalogue with detail metadata.
+    const enriched: Item[] = [];
+    for (let i = 0; i < items.length; i += 6) {
+      const batch = await Promise.all(items.slice(i, i + 6).map(async (item) => {
+        try {
+          const response = await fetch(`${BASE_DETAILS}?id=${encodeURIComponent(item.id)}&type=${item.item_type}`);
+          if (!response.ok) return item;
+          const detail = await response.json() as Partial<Detail>;
+          return { ...item, genre: detail.item?.genre ?? null, annee: detail.item?.annee ?? null };
+        } catch { return item; }
+      }));
+      enriched.push(...batch);
+    }
+    return enriched;
   });
 
 export const fetchDetails = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d: { id: string; type: string }) => ({
     id: String(d.id).slice(0, 20),
     type: ["film", "serie", "anime"].includes(d.type) ? d.type : "film",
