@@ -14,13 +14,106 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      favorites: {
+        Row: {
+          created_at: string
+          item: Json
+          item_id: string
+          item_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          item: Json
+          item_id: string
+          item_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          item?: Json
+          item_id?: string
+          item_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "favorites_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_path: string | null
+          created_at: string
+          id: string
+          username: string
+        }
+        Insert: {
+          avatar_path?: string | null
+          created_at?: string
+          id: string
+          username?: string
+        }
+        Update: {
+          avatar_path?: string | null
+          created_at?: string
+          id?: string
+          username?: string
+        }
+        Relationships: []
+      }
+      watch_events: {
+        Row: {
+          id: string
+          item: Json
+          item_id: string
+          item_type: string
+          user_id: string
+          viewed_at: string
+        }
+        Insert: {
+          id?: string
+          item: Json
+          item_id: string
+          item_type: string
+          user_id: string
+          viewed_at?: string
+        }
+        Update: {
+          id?: string
+          item?: Json
+          item_id?: string
+          item_type?: string
+          user_id?: string
+          viewed_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "watch_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      film_rankings: {
+        Args: { days: number }
+        Returns: {
+          item: Json
+          views: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
