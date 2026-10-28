@@ -13,7 +13,7 @@ const TABS = [
 
 type Search = { type?: string | undefined; q?: string | undefined; qualite?: string | undefined; langue?: string | undefined };
 
-export const Route = createFileRoute("/_authenticated/home")({
+export const Route = createFileRoute("/_authenticated/")({
   validateSearch: (s: Record<string, unknown>): Search => ({
     type: typeof s["type"] === "string" ? s["type"] : undefined,
     q: typeof s["q"] === "string" ? s["q"] : undefined,

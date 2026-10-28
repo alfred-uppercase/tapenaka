@@ -10,7 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
-import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
+import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthenticatedTypeIdRouteImport } from './routes/_authenticated/$type.$id'
 import { Route as ApiPublicWatchSplatRouteImport } from './routes/api/public/watch.$'
 
@@ -18,9 +18,9 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedHomeRoute = AuthenticatedHomeRouteImport.update({
-  id: '/home',
-  path: '/home',
+const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedTypeIdRoute = AuthenticatedTypeIdRouteImport.update({
@@ -35,33 +35,31 @@ const ApiPublicWatchSplatRoute = ApiPublicWatchSplatRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof AuthenticatedRouteRouteWithChildren
-  '/home': typeof AuthenticatedHomeRoute
+  '/': typeof AuthenticatedIndexRoute
   '/$type/$id': typeof AuthenticatedTypeIdRoute
   '/api/public/watch/$': typeof ApiPublicWatchSplatRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof AuthenticatedRouteRouteWithChildren
-  '/home': typeof AuthenticatedHomeRoute
+  '/': typeof AuthenticatedIndexRoute
   '/$type/$id': typeof AuthenticatedTypeIdRoute
   '/api/public/watch/$': typeof ApiPublicWatchSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
-  '/_authenticated/home': typeof AuthenticatedHomeRoute
+  '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/$type/$id': typeof AuthenticatedTypeIdRoute
   '/api/public/watch/$': typeof ApiPublicWatchSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/home' | '/$type/$id' | '/api/public/watch/$'
+  fullPaths: '/' | '/$type/$id' | '/api/public/watch/$'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/home' | '/$type/$id' | '/api/public/watch/$'
+  to: '/' | '/$type/$id' | '/api/public/watch/$'
   id:
     | '__root__'
     | '/_authenticated'
-    | '/_authenticated/home'
+    | '/_authenticated/'
     | '/_authenticated/$type/$id'
     | '/api/public/watch/$'
   fileRoutesById: FileRoutesById
@@ -80,11 +78,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/home': {
-      id: '/_authenticated/home'
-      path: '/home'
-      fullPath: '/home'
-      preLoaderRoute: typeof AuthenticatedHomeRouteImport
+    '/_authenticated/': {
+      id: '/_authenticated/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/$type/$id': {
@@ -105,12 +103,12 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
+  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedTypeIdRoute: typeof AuthenticatedTypeIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedHomeRoute: AuthenticatedHomeRoute,
+  AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedTypeIdRoute: AuthenticatedTypeIdRoute,
 }
 
