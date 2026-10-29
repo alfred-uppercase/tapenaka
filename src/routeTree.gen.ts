@@ -10,7 +10,13 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedCatalogueRouteImport } from './routes/_authenticated/catalogue'
+import { Route as AuthenticatedFavorisRouteImport } from './routes/_authenticated/favoris'
+import { Route as AuthenticatedProfilRouteImport } from './routes/_authenticated/profil'
+import { Route as AuthenticatedSuggestionRouteImport } from './routes/_authenticated/suggestion'
 import { Route as AuthenticatedTypeIdRouteImport } from './routes/_authenticated/$type.$id'
 import { Route as ApiPublicWatchSplatRouteImport } from './routes/api/public/watch.$'
 
@@ -18,9 +24,39 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedCatalogueRoute = AuthenticatedCatalogueRouteImport.update({
+  id: '/catalogue',
+  path: '/catalogue',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedFavorisRoute = AuthenticatedFavorisRouteImport.update({
+  id: '/favoris',
+  path: '/favoris',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedProfilRoute = AuthenticatedProfilRouteImport.update({
+  id: '/profil',
+  path: '/profil',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedSuggestionRoute = AuthenticatedSuggestionRouteImport.update({
+  id: '/suggestion',
+  path: '/suggestion',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedTypeIdRoute = AuthenticatedTypeIdRouteImport.update({
@@ -36,10 +72,22 @@ const ApiPublicWatchSplatRoute = ApiPublicWatchSplatRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
+  '/auth': typeof AuthRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/catalogue': typeof AuthenticatedCatalogueRoute
+  '/favoris': typeof AuthenticatedFavorisRoute
+  '/profil': typeof AuthenticatedProfilRoute
+  '/suggestion': typeof AuthenticatedSuggestionRoute
   '/$type/$id': typeof AuthenticatedTypeIdRoute
   '/api/public/watch/$': typeof ApiPublicWatchSplatRoute
 }
 export interface FileRoutesByTo {
+  '/auth': typeof AuthRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/catalogue': typeof AuthenticatedCatalogueRoute
+  '/favoris': typeof AuthenticatedFavorisRoute
+  '/profil': typeof AuthenticatedProfilRoute
+  '/suggestion': typeof AuthenticatedSuggestionRoute
   '/': typeof AuthenticatedIndexRoute
   '/$type/$id': typeof AuthenticatedTypeIdRoute
   '/api/public/watch/$': typeof ApiPublicWatchSplatRoute
@@ -47,18 +95,48 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/_authenticated/catalogue': typeof AuthenticatedCatalogueRoute
+  '/_authenticated/favoris': typeof AuthenticatedFavorisRoute
+  '/_authenticated/profil': typeof AuthenticatedProfilRoute
+  '/_authenticated/suggestion': typeof AuthenticatedSuggestionRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/$type/$id': typeof AuthenticatedTypeIdRoute
   '/api/public/watch/$': typeof ApiPublicWatchSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/$type/$id' | '/api/public/watch/$'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/reset-password'
+    | '/catalogue'
+    | '/favoris'
+    | '/profil'
+    | '/suggestion'
+    | '/$type/$id'
+    | '/api/public/watch/$'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/$type/$id' | '/api/public/watch/$'
+  to:
+    | '/auth'
+    | '/reset-password'
+    | '/catalogue'
+    | '/favoris'
+    | '/profil'
+    | '/suggestion'
+    | '/'
+    | '/$type/$id'
+    | '/api/public/watch/$'
   id:
     | '__root__'
     | '/_authenticated'
+    | '/auth'
+    | '/reset-password'
+    | '/_authenticated/catalogue'
+    | '/_authenticated/favoris'
+    | '/_authenticated/profil'
+    | '/_authenticated/suggestion'
     | '/_authenticated/'
     | '/_authenticated/$type/$id'
     | '/api/public/watch/$'
@@ -66,6 +144,8 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   ApiPublicWatchSplatRoute: typeof ApiPublicWatchSplatRoute
 }
 
@@ -78,11 +158,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/': {
       id: '/_authenticated/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/catalogue': {
+      id: '/_authenticated/catalogue'
+      path: '/catalogue'
+      fullPath: '/catalogue'
+      preLoaderRoute: typeof AuthenticatedCatalogueRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/favoris': {
+      id: '/_authenticated/favoris'
+      path: '/favoris'
+      fullPath: '/favoris'
+      preLoaderRoute: typeof AuthenticatedFavorisRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/profil': {
+      id: '/_authenticated/profil'
+      path: '/profil'
+      fullPath: '/profil'
+      preLoaderRoute: typeof AuthenticatedProfilRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/suggestion': {
+      id: '/_authenticated/suggestion'
+      path: '/suggestion'
+      fullPath: '/suggestion'
+      preLoaderRoute: typeof AuthenticatedSuggestionRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/$type/$id': {
@@ -103,11 +225,19 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedCatalogueRoute: typeof AuthenticatedCatalogueRoute
+  AuthenticatedFavorisRoute: typeof AuthenticatedFavorisRoute
+  AuthenticatedProfilRoute: typeof AuthenticatedProfilRoute
+  AuthenticatedSuggestionRoute: typeof AuthenticatedSuggestionRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedTypeIdRoute: typeof AuthenticatedTypeIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedCatalogueRoute: AuthenticatedCatalogueRoute,
+  AuthenticatedFavorisRoute: AuthenticatedFavorisRoute,
+  AuthenticatedProfilRoute: AuthenticatedProfilRoute,
+  AuthenticatedSuggestionRoute: AuthenticatedSuggestionRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedTypeIdRoute: AuthenticatedTypeIdRoute,
 }
@@ -117,6 +247,8 @@ const AuthenticatedRouteRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   ApiPublicWatchSplatRoute: ApiPublicWatchSplatRoute,
 }
 export const routeTree = rootRouteImport
