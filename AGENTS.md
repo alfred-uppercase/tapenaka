@@ -8,3 +8,8 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Keep viewing and discovery pages under the client-only authenticated layout; server functions and the watch proxy validate auth independently because UI gating does not protect endpoints.
+- Enrich the current upstream catalogue with detail metadata in bounded batches because the home API omits genre and year.
+- Store profiles, private favorites and watch events in Cloud; rank distinct film viewers over rolling seven-day and thirty-day periods to avoid repeated-click inflation.
+- Set a short-lived HttpOnly same-origin watch cookie after an authenticated action because iframe requests cannot attach the app bearer header.

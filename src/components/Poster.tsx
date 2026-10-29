@@ -1,11 +1,12 @@
 import { Link } from "@tanstack/react-router";
 import type { Item } from "@/lib/api";
+import { FavoriteButton } from "./FavoriteButton";
 
 export const typeLabel = { film: "Film", serie: "Série", anime: "Anime" } as const;
 
 export function Poster({ item }: { item: Item }) {
   return (
-    <Link
+    <div className="relative"><Link
       to="/$type/$id"
       params={{ type: item.item_type, id: item.id }}
       className="group block"
@@ -23,6 +24,6 @@ export function Poster({ item }: { item: Item }) {
       </div>
       <p className="mt-2 line-clamp-1 text-sm font-medium">{item.titre}</p>
       <p className="text-xs text-muted-foreground">{item.langue}</p>
-    </Link>
+    </Link><div className="absolute right-2 top-2"><FavoriteButton item={item} compact /></div></div>
   );
 }
