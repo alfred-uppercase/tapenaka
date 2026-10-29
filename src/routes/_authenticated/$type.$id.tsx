@@ -3,6 +3,10 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { fetchDetails, itemsQuery, type Item } from "@/lib/api";
 import { Poster, typeLabel } from "@/components/Poster";
+import { FavoriteButton } from "@/components/FavoriteButton";
+import { Button } from "@/components/ui/button";
+import { prepareWatch } from "@/lib/member.functions";
+import { toast } from "sonner";
 
 function watchUrl(type: string, tmdbId: string | number, saison?: string | null) {
   if (type === "film") return `/api/public/watch/movie/${tmdbId}`;
@@ -34,13 +38,13 @@ function Modal({
     <div className="fixed inset-0 z-50 flex flex-col bg-background/95 backdrop-blur-sm" role="dialog" aria-modal="true">
       <div className="flex items-center gap-4 border-b border-border px-4 py-3">
         <h2 className="truncate font-display text-lg font-semibold">{title}</h2>
-        <button
+        <Button
           onClick={onClose}
           aria-label="Fermer"
           className="ml-auto flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-card text-xl leading-none ring-1 ring-border transition hover:bg-accent"
         >
           ×
-        </button>
+        </Button>
       </div>
       <div className={fullScreen ? "flex-1" : "mx-auto flex w-full max-w-5xl flex-1 items-center p-4"}>{children}</div>
     </div>
@@ -62,6 +66,8 @@ export const Route = createFileRoute("/_authenticated/$type/$id")({
         { name: "description", content: desc },
         { property: "og:title", content: title },
         { property: "og:description", content: desc },
+        { property: "og:type", content: "website" },
+        { name: "twitter:card", content: "summary_large_image" },
         ...(image ? [{ property: "og:image", content: image }, { name: "twitter:image", content: image }] : []),
       ],
     };
@@ -97,6 +103,7 @@ function Detail() {
   const data = Route.useLoaderData();
   const item = data.item;
   const [modal, setModal] = useState<"watch" | "trailer" | null>(null);
+  const [preparing, setPreparing] = useState(false);
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
@@ -111,7 +118,7 @@ function Detail() {
     return (
       <div className="min-h-screen">
         <header className="mx-auto flex max-w-7xl items-center px-4 py-4">
-          <Link to="/" search={{ type: "all", q: "" }} className="font-display text-2xl font-bold">
+          <Link to="/" className="font-display text-2xl font-bold">
             Stream<span className="text-primary">Wall</span>
           </Link>
         </header>
@@ -132,12 +139,12 @@ function Detail() {
 
   return (
     <div className="min-h-screen">
-      <header className="absolute inset-x-0 top-0 z-20">
+      <header className="relative z-20">
         <div className="mx-auto flex max-w-7xl items-center px-4 py-4">
-          <Link to="/" search={{ type: "all", q: "" }} className="font-display text-2xl font-bold">
+          <Link to="/" className="font-display text-2xl font-bold">
             Stream<span className="text-primary">Wall</span>
           </Link>
-          <Link to="/" search={{ type: "all", q: "" }} className="chip ml-auto">
+          <Link to="/" className="chip ml-auto">
             ← Retour
           </Link>
         </div>
@@ -172,21 +179,28 @@ function Detail() {
             {item.descr && <p className="max-w-3xl text-sm leading-relaxed text-foreground/90">{item.descr}</p>}
             <div className="mt-2 flex flex-wrap gap-3">
               {item.tmdbId && (
-                <button
-                  onClick={() => setModal("watch")}
+                <Button
+                  disabled={preparing}
+                  onClick={async () => {
+                    setPreparing(true);
+                    try { await prepareWatch({ data: { id: String(item.id), titre: item.titre, poster: item.poster, qualite: item.qualite, langue: item.langue, item_type: type as Item["item_type"], saison: item.saison ?? null } }); setModal("watch"); }
+                    catch { toast.error("Impossible d’ouvrir le lecteur."); }
+                    finally { setPreparing(false); }
+                  }}
                   className="flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-semibold text-primary-foreground transition hover:opacity-90"
                 >
                   ▶ Regarder
-                </button>
+                </Button>
               )}
               {item.trailer && (
-                <button
+                <Button
                   onClick={() => setModal("trailer")}
                   className="flex items-center gap-2 rounded-full bg-card px-6 py-3 font-semibold ring-1 ring-border transition hover:bg-accent"
                 >
                   🎬 Bande-annonce
-                </button>
+                </Button>
               )}
+              <FavoriteButton item={{ id: String(item.id), titre: item.titre, poster: item.poster, qualite: item.qualite, langue: item.langue, item_type: type as Item["item_type"], saison: item.saison ?? null }} />
             </div>
           </div>
         </div>
