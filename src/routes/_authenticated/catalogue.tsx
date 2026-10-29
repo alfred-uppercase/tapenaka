@@ -1,0 +1,15 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { Search } from "lucide-react";
+import { itemsQuery } from "@/lib/api";
+import { filterCatalogue } from "@/lib/discovery";
+import { Poster } from "@/components/Poster";
+import { Button } from "@/components/ui/button";
+const query = itemsQuery("all", "");
+export const Route = createFileRoute("/_authenticated/catalogue")({ loader: ({ context }) => context.queryClient.ensureQueryData(query), head: () => ({ meta: [{ title: 'Catalogue — StreamWall' }, { name: "description", content: 'Les derniers films, séries et animes : recherche, genre et année.' }, { property: "og:title", content: 'Catalogue — StreamWall' }, { property: "og:description", content: 'Les derniers films, séries et animes : recherche, genre et année.' }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary_large_image" }] }), component: Catalogue });
+function Catalogue() {
+ const { data } = useSuspenseQuery(query); const [q,setQ]=useState(""); const [type,setType]=useState("all"); const [genre,setGenre]=useState(""); const [year,setYear]=useState("");
+ const genres=[...new Set(data.flatMap(i=>i.genre?.split(",").map(g=>g.trim())??[]))].sort(); const years=[...new Set(data.flatMap(i=>i.annee?[i.annee]:[]))].sort((a,b)=>b-a); const items=filterCatalogue(data,{q,type,genre,year});
+ return <main className="mx-auto max-w-7xl px-4 py-10"><h1 className="mb-6 font-display text-4xl font-bold">Catalogue</h1><div className="relative mb-6"><Search className="absolute left-5 top-7 size-6 text-primary"/><input aria-label="Rechercher un titre" value={q} onChange={e=>setQ(e.target.value)} placeholder="Quel titre recherchez-vous ?" className="h-20 w-full rounded-lg border border-input bg-card pl-16 pr-4 text-xl outline-none focus:border-primary"/></div><div className="mb-8 flex flex-wrap gap-3">{[{v:"all",l:"Tout"},{v:"film",l:"Film"},{v:"anime",l:"Anime"},{v:"serie",l:"Série"}].map(t=><Button key={t.v} variant={type===t.v?"default":"ghost"} aria-pressed={type===t.v} onClick={()=>setType(t.v)}>{t.l}</Button>)}<select aria-label="Genre" className="select" value={genre} onChange={e=>setGenre(e.target.value)}><option value="">Tous les genres</option>{genres.map(g=><option key={g}>{g}</option>)}</select><select aria-label="Année de sortie" className="select" value={year} onChange={e=>setYear(e.target.value)}><option value="">Année de sortie</option>{years.map(y=><option key={y}>{y}</option>)}</select><Button variant="ghost" onClick={()=>{setQ("");setType("all");setGenre("");setYear("");}}>Réinitialiser</Button></div><div className="mb-5 flex justify-between"><h2 className="font-display text-xl">Derniers ajouts</h2><p aria-live="polite" className="text-sm text-muted-foreground">{items.length} résultat{items.length>1?"s":""}</p></div>{items.length?<div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">{items.map(i=><Poster key={i.item_type+i.id} item={i}/>)}</div>:<p className="py-16 text-center text-muted-foreground">Aucun résultat.</p>}</main>;
+}
