@@ -54,7 +54,7 @@ export const fetchItems = createServerFn({ method: "GET" })
     q: String(d.q ?? "").slice(0, 100),
   }))
   .handler(async ({ data }) => {
-    const res = await fetch(`${BASE}?type=${data.type}&q=${encodeURIComponent(data.q)}`);
+    const res = await fetch(`${BASE}?type=${data.type}&q=${encodeURIComponent(data.q)}`, { signal: AbortSignal.timeout(15_000) });
     if (!res.ok) throw new Error("API indisponible");
     const json = (await res.json()) as { items?: Item[] };
     const items = json.items ?? [];
@@ -63,7 +63,7 @@ export const fetchItems = createServerFn({ method: "GET" })
     for (let i = 0; i < items.length; i += 6) {
       const batch = await Promise.all(items.slice(i, i + 6).map(async (item) => {
         try {
-          const response = await fetch(`${BASE_DETAILS}?id=${encodeURIComponent(item.id)}&type=${item.item_type}`);
+          const response = await fetch(`${BASE_DETAILS}?id=${encodeURIComponent(item.id)}&type=${item.item_type}`, { signal: AbortSignal.timeout(8_000) });
           if (!response.ok) return item;
           const detail = await response.json() as Partial<Detail>;
           return { ...item, genre: detail.item?.genre ?? null, annee: detail.item?.annee ?? null };
@@ -81,7 +81,7 @@ export const fetchDetails = createServerFn({ method: "GET" })
     type: ["film", "serie", "anime"].includes(d.type) ? d.type : "film",
   }))
   .handler(async ({ data }) => {
-    const res = await fetch(`${BASE_DETAILS}?id=${encodeURIComponent(data.id)}&type=${data.type}`);
+    const res = await fetch(`${BASE_DETAILS}?id=${encodeURIComponent(data.id)}&type=${data.type}`, { signal: AbortSignal.timeout(15_000) });
     if (!res.ok) throw new Error("API indisponible");
     const json = (await res.json()) as Partial<Detail>;
     return { item: json.item ?? null, cast: json.cast ?? [], related: json.related ?? [], episodes: json.episodes ?? [] };

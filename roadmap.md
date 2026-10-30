@@ -1,6 +1,8 @@
 # StreamWall
-- [ ] Connexion obligatoire, inscription et récupération de mot de passe
-- [ ] Profils avec pseudo et avatar, favoris privés
-- [ ] Catalogue, recherche et filtres, suggestions aléatoires
-- [ ] Accueil tendance et top hebdomadaire, suivi des lectures
-- [ ] Vérifications des parcours et des protections
+- [x] Connexion obligatoire, inscription et récupération de mot de passe
+- [x] Profils avec pseudo et avatar, favoris privés
+- [x] Catalogue, recherche et filtres, suggestions aléatoires
+- [x] Accueil tendance et top hebdomadaire, suivi des ouvertures du lecteur
+- [x] Tests des filtres et des routes ; connexion, profil, favoris et déconnexion vérifiés avec un compte temporaire supprimé
+- [ ] Vérification réelle du catalogue, des suggestions et du lecteur : API externe indisponible (522)
+- [ ] Vérification des liens email de confirmation et récupération : réception d’un email nécessaire

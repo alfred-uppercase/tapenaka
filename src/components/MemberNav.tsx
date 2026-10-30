@@ -5,11 +5,13 @@ import { Button } from "./ui/button";
 import { memberQuery } from "@/lib/member";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { clearWatch } from "@/lib/member.functions";
 
 export function MemberNav() {
   const { data } = useQuery(memberQuery); const client = useQueryClient(); const navigate = useNavigate();
   async function logout() {
     await client.cancelQueries(); client.clear();
+    await clearWatch();
     const { error } = await supabase.auth.signOut();
     if (error) { toast.error("Déconnexion impossible."); return; }
     await navigate({ to: "/auth", replace: true });
