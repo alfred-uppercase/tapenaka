@@ -5,6 +5,10 @@ import { z } from "zod";
 import type { Item } from "./api";
 
 const itemSchema = z.object({ id: z.string(), titre: z.string(), poster: z.string().nullable(), qualite: z.string().nullable(), langue: z.string().nullable(), item_type: z.enum(["film", "serie", "anime"]), saison: z.string().nullable(), genre: z.string().nullable().optional(), annee: z.number().nullable().optional() });
+export const clearWatch = createServerFn({ method: "POST" }).handler(() => {
+  setCookie("streamwall_watch", "", { httpOnly: true, sameSite: "strict", path: "/api/public/watch", maxAge: 0 });
+  return true;
+});
 export const memberData = createServerFn({ method: "GET" }).middleware([requireSupabaseAuth]).handler(async ({ context }) => {
   const [profile, favorites] = await Promise.all([
     context.supabase.from("profiles").select("username,avatar_path").eq("id", context.userId).single(),
