@@ -67,6 +67,53 @@ export type Database = {
         }
         Relationships: []
       }
+      user_presence: {
+        Row: {
+          current_item: Json | null
+          last_seen: string
+          page: string | null
+          user_id: string
+        }
+        Insert: {
+          current_item?: Json | null
+          last_seen?: string
+          page?: string | null
+          user_id: string
+        }
+        Update: {
+          current_item?: Json | null
+          last_seen?: string
+          page?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_presence_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       watch_events: {
         Row: {
           id: string
@@ -107,6 +154,27 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_top_titles: {
+        Args: { days: number }
+        Returns: {
+          item: Json
+          plays: number
+          viewers: number
+        }[]
+      }
+      admin_users: {
+        Args: never
+        Returns: {
+          created_at: string
+          current_item: Json
+          email: string
+          id: string
+          is_admin: boolean
+          last_seen: string
+          plays: number
+          username: string
+        }[]
+      }
       film_rankings: {
         Args: { days: number }
         Returns: {
@@ -114,9 +182,16 @@ export type Database = {
           views: number
         }[]
       }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -243,6 +318,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+    },
   },
 } as const
