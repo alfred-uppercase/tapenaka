@@ -7,6 +7,7 @@ import { FavoriteButton } from "@/components/FavoriteButton";
 import { Button } from "@/components/ui/button";
 import { prepareWatch } from "@/lib/member.functions";
 import { toast } from "sonner";
+import { setWatching } from "@/lib/presence";
 
 function watchUrl(type: string, tmdbId: string | number, saison?: string | null) {
   if (type === "film") return `/api/public/watch/movie/${tmdbId}`;
@@ -183,7 +184,7 @@ function Detail() {
                   disabled={preparing}
                   onClick={async () => {
                     setPreparing(true);
-                    try { await prepareWatch({ data: { id: String(item.id), titre: item.titre, poster: item.poster, qualite: item.qualite, langue: item.langue, item_type: type as Item["item_type"], saison: item.saison ?? null } }); setModal("watch"); }
+                    try { const w = { id: String(item.id), titre: item.titre, poster: item.poster, qualite: item.qualite, langue: item.langue, item_type: type as Item["item_type"], saison: item.saison ?? null }; await prepareWatch({ data: w }); setWatching(w); setModal("watch"); }
                     catch { toast.error("Impossible d’ouvrir le lecteur."); }
                     finally { setPreparing(false); }
                   }}
@@ -280,7 +281,7 @@ function Detail() {
 
       {/* Watch modal (fullscreen) */}
       {modal === "watch" && item.tmdbId && (
-        <Modal onClose={() => setModal(null)} title={`Vous regardez ${item.titre}`} fullScreen>
+        <Modal onClose={() => { setWatching(null); setModal(null); }} title={`Vous regardez ${item.titre}`} fullScreen>
           <iframe
             src={watchUrl(item.type, item.tmdbId, item.saison)}
             title={`Regarder — ${item.titre}`}
