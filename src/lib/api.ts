@@ -128,7 +128,7 @@ export const fetchCatalogue = createServerFn({ method: "GET" })
   .handler(async ({ data }): Promise<CataloguePage> => {
     const res = await fetch(`${BASE_CATALOGUE}?${catalogueParams(data)}`, { signal: AbortSignal.timeout(15_000) });
     if (!res.ok) throw new Error("API indisponible");
-    const json = (await res.json()) as { total?: number; page?: number; pages?: number; approximatif?: boolean; data?: Array<Record<string, unknown>> };
+    const json = (await res.json()) as { total?: number; page?: number; pages?: number; approximatif?: boolean; data?: Array<{ id?: unknown; titre?: unknown; poster?: unknown; qualite?: unknown; langue?: unknown; genre?: unknown; source?: unknown; categorie?: unknown; annee?: unknown }> };
     const items: Item[] = (json.data ?? []).map((r) => {
       const genre = (r.genre as string) || null;
       const isSerie = r.source === "series" || r.categorie === "serie";
