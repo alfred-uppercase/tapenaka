@@ -15,6 +15,13 @@
       "when": 1793623627574,
       "tag": "0001_admin_roles_presence",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793709123437,
+      "tag": "0002_app_settings",
+      "breakpoints": true
     }
   ]
 }

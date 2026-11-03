@@ -2,6 +2,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { adminOverview, adminUserHistory } from "@/lib/admin.functions";
+import { getApiOrigin, setApiOrigin } from "@/lib/member.functions";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import type { Item } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 
@@ -53,10 +56,33 @@ function AdminPage() {
         </>}
       </section>
     </div>
+    <ApiSettings />
     <section className="rounded-xl border border-border bg-card p-5">
       <div className="mb-3 flex flex-wrap items-center gap-2"><h2 className="mr-auto font-display text-xl">Films et séries les plus regardés</h2>
         <Button variant={period === "top7" ? "default" : "ghost"} onClick={() => setPeriod("top7")}>7 jours</Button><Button variant={period === "top30" ? "default" : "ghost"} onClick={() => setPeriod("top30")}>30 jours</Button></div>
       {data[period].length ? <div className="grid gap-1 md:grid-cols-2">{data[period].map((r, i) => <ItemLine key={i} item={r.item} extra={`${r.viewers} spectateur(s) · ${r.plays} lecture(s)`} />)}</div> : <p className="text-muted-foreground">Aucun visionnage sur cette période.</p>}
     </section>
   </main>;
+}
+
+function ApiSettings() {
+  const qc = useQueryClient();
+  const current = useQuery({ queryKey: ["api-origin"], queryFn: () => getApiOrigin() });
+  const [value, setValue] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const v = value ?? current.data ?? "";
+  async function save(e: React.FormEvent) {
+    e.preventDefault(); setSaving(true);
+    try { await setApiOrigin({ data: { origin: v.trim() } }); toast.success("Domaine de l’API mis à jour"); setValue(null); await qc.invalidateQueries(); }
+    catch (err) { toast.error(err instanceof Error ? err.message : "Échec de l’enregistrement"); }
+    finally { setSaving(false); }
+  }
+  return <section className="rounded-xl border border-border bg-card p-5">
+    <h2 className="mb-1 font-display text-xl">Paramètres</h2>
+    <p className="mb-4 text-sm text-muted-foreground">Nom de domaine utilisé pour le catalogue, les détails et le lecteur.</p>
+    <form onSubmit={save} className="flex flex-wrap gap-2">
+      <input value={v} onChange={e => setValue(e.target.value)} placeholder="https://streamwall.behoririka.mg" className="min-w-64 flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm" />
+      <Button type="submit" disabled={saving || !v}>{saving ? "Enregistrement…" : "Enregistrer"}</Button>
+    </form>
+  </section>;
 }

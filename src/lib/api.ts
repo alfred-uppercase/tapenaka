@@ -44,8 +44,12 @@ export type Detail = {
   episodes: Episode[];
 };
 
-const BASE = "https://streamwall.behoririka.mg/api_home.php";
-const BASE_DETAILS = "https://streamwall.behoririka.mg/details_api.php";
+export const DEFAULT_API_ORIGIN = "https://streamwall.behoririka.mg";
+/** The upstream domain is editable by admins in app_settings (key api_origin). */
+export async function apiOrigin(sb: { from: (t: "app_settings") => any }): Promise<string> {
+  const { data } = await sb.from("app_settings").select("value").eq("key", "api_origin").maybeSingle();
+  return (data?.value as string | undefined)?.replace(/\/+$/, "") || DEFAULT_API_ORIGIN;
+}
 
 export const fetchItems = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -53,8 +57,9 @@ export const fetchItems = createServerFn({ method: "GET" })
     type: ["all", "film", "serie", "anime"].includes(d.type) ? d.type : "all",
     q: String(d.q ?? "").slice(0, 100),
   }))
-  .handler(async ({ data }) => {
-    const res = await fetch(`${BASE}?type=${data.type}&q=${encodeURIComponent(data.q)}`, { signal: AbortSignal.timeout(15_000) });
+  .handler(async ({ data, context }) => {
+    const O = await apiOrigin(context.supabase);
+    const res = await fetch(`${O}/api_home.php?type=${data.type}&q=${encodeURIComponent(data.q)}`, { signal: AbortSignal.timeout(15_000) });
     if (!res.ok) throw new Error("API indisponible");
     const json = (await res.json()) as { items?: Item[] };
     const items = json.items ?? [];
@@ -63,7 +68,7 @@ export const fetchItems = createServerFn({ method: "GET" })
     for (let i = 0; i < items.length; i += 6) {
       const batch = await Promise.all(items.slice(i, i + 6).map(async (item) => {
         try {
-          const response = await fetch(`${BASE_DETAILS}?id=${encodeURIComponent(item.id)}&type=${item.item_type}`, { signal: AbortSignal.timeout(8_000) });
+          const response = await fetch(`${O}/details_api.php?id=${encodeURIComponent(item.id)}&type=${item.item_type}`, { signal: AbortSignal.timeout(8_000) });
           if (!response.ok) return item;
           const detail = await response.json() as Partial<Detail>;
           return { ...item, genre: detail.item?.genre ?? null, annee: detail.item?.annee ?? null };
@@ -80,8 +85,8 @@ export const fetchDetails = createServerFn({ method: "GET" })
     id: String(d.id).slice(0, 20),
     type: ["film", "serie", "anime"].includes(d.type) ? d.type : "film",
   }))
-  .handler(async ({ data }) => {
-    const res = await fetch(`${BASE_DETAILS}?id=${encodeURIComponent(data.id)}&type=${data.type}`, { signal: AbortSignal.timeout(15_000) });
+  .handler(async ({ data, context }) => {
+    const res = await fetch(`${await apiOrigin(context.supabase)}/details_api.php?id=${encodeURIComponent(data.id)}&type=${data.type}`, { signal: AbortSignal.timeout(15_000) });
     if (!res.ok) throw new Error("API indisponible");
     const json = (await res.json()) as Partial<Detail>;
     return { item: json.item ?? null, cast: json.cast ?? [], related: json.related ?? [], episodes: json.episodes ?? [] };
@@ -101,7 +106,6 @@ export const detailsQuery = (type: string, id: string) =>
     staleTime: 300_000,
   });
 
-const BASE_CATALOGUE = "https://streamwall.behoririka.mg/api/korotoko.php";
 export type CatalogueFilters = { q: string; type: string; genre: string; year: string; page: number };
 export type CataloguePage = { total: number; page: number; pages: number; approximatif: boolean; items: Item[] };
 
@@ -125,8 +129,8 @@ export const fetchCatalogue = createServerFn({ method: "GET" })
     year: /^\d{4}$/.test(String(d.year ?? "")) ? String(d.year) : "",
     page: Math.min(10000, Math.max(1, Number(d.page) || 1)),
   }))
-  .handler(async ({ data }): Promise<CataloguePage> => {
-    const res = await fetch(`${BASE_CATALOGUE}?${catalogueParams(data)}`, { signal: AbortSignal.timeout(15_000) });
+  .handler(async ({ data, context }): Promise<CataloguePage> => {
+    const res = await fetch(`${await apiOrigin(context.supabase)}/api/korotoko.php?${catalogueParams(data)}`, { signal: AbortSignal.timeout(15_000) });
     if (!res.ok) throw new Error("API indisponible");
     const json = (await res.json()) as { total?: number; page?: number; pages?: number; approximatif?: boolean; data?: Array<{ id?: unknown; titre?: unknown; poster?: unknown; qualite?: unknown; langue?: unknown; genre?: unknown; source?: unknown; categorie?: unknown; annee?: unknown }> };
     const items: Item[] = (json.data ?? []).map((r) => {
@@ -144,8 +148,8 @@ export const fetchCatalogue = createServerFn({ method: "GET" })
 
 export const fetchCatalogueGenres = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async () => {
-    const res = await fetch(`${BASE_CATALOGUE}?filtres=1`, { signal: AbortSignal.timeout(15_000) });
+  .handler(async ({ context }) => {
+    const res = await fetch(`${await apiOrigin(context.supabase)}/api/korotoko.php?filtres=1`, { signal: AbortSignal.timeout(15_000) });
     if (!res.ok) return [] as string[];
     const json = (await res.json()) as { genres?: string[] };
     return (json.genres ?? []).filter((g) => /^[\p{L} &'-]{3,30}$/u.test(g));
