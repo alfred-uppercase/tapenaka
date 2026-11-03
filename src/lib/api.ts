@@ -100,3 +100,53 @@ export const detailsQuery = (type: string, id: string) =>
     queryFn: () => fetchDetails({ data: { type, id } }),
     staleTime: 300_000,
   });
+
+const BASE_CATALOGUE = "https://streamwall.behoririka.mg/api/korotoko.php";
+export type CatalogueFilters = { q: string; type: string; genre: string; year: string; page: number };
+export type CataloguePage = { total: number; page: number; pages: number; approximatif: boolean; items: Item[] };
+
+/** Builds the upstream query; "anime" maps to series in the Animation genre because the API only knows film/serie. */
+export function catalogueParams(f: CatalogueFilters) {
+  const p = new URLSearchParams({ tri: f.q ? "pertinence" : "recent", limit: "24", page: String(Math.max(1, f.page)) });
+  if (f.q) p.set("titre", f.q);
+  if (f.type === "film" || f.type === "serie") p.set("categorie", f.type);
+  if (f.type === "anime") { p.set("categorie", "serie"); p.set("genre", f.genre || "Animation"); }
+  if (f.genre && f.type !== "anime") p.set("genre", f.genre);
+  if (/^\d{4}$/.test(f.year)) p.set("annee", f.year);
+  return p;
+}
+
+export const fetchCatalogue = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: CatalogueFilters) => ({
+    q: String(d.q ?? "").slice(0, 100).trim(),
+    type: ["all", "film", "serie", "anime"].includes(d.type) ? d.type : "all",
+    genre: String(d.genre ?? "").slice(0, 60),
+    year: /^\d{4}$/.test(String(d.year ?? "")) ? String(d.year) : "",
+    page: Math.min(10000, Math.max(1, Number(d.page) || 1)),
+  }))
+  .handler(async ({ data }): Promise<CataloguePage> => {
+    const res = await fetch(`${BASE_CATALOGUE}?${catalogueParams(data)}`, { signal: AbortSignal.timeout(15_000) });
+    if (!res.ok) throw new Error("API indisponible");
+    const json = (await res.json()) as { total?: number; page?: number; pages?: number; approximatif?: boolean; data?: Array<{ id?: unknown; titre?: unknown; poster?: unknown; qualite?: unknown; langue?: unknown; genre?: unknown; source?: unknown; categorie?: unknown; annee?: unknown }> };
+    const items: Item[] = (json.data ?? []).map((r) => {
+      const genre = (r.genre as string) || null;
+      const isSerie = r.source === "series" || r.categorie === "serie";
+      return {
+        id: String(r.id), titre: String(r.titre ?? ""), poster: (r.poster as string) || null,
+        qualite: (r.qualite as string) || null, langue: (r.langue as string) || null,
+        item_type: isSerie ? (/anim/i.test(genre ?? "") ? "anime" : "serie") : "film",
+        saison: null, genre, annee: (r.annee as number) ?? null,
+      };
+    });
+    return { total: json.total ?? 0, page: json.page ?? 1, pages: json.pages ?? 1, approximatif: !!json.approximatif, items };
+  });
+
+export const fetchCatalogueGenres = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async () => {
+    const res = await fetch(`${BASE_CATALOGUE}?filtres=1`, { signal: AbortSignal.timeout(15_000) });
+    if (!res.ok) return [] as string[];
+    const json = (await res.json()) as { genres?: string[] };
+    return (json.genres ?? []).filter((g) => /^[\p{L} &'-]{3,30}$/u.test(g));
+  });
