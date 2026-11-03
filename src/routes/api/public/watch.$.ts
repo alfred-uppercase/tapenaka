@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
 
-const STREAM_ORIGIN = "https://streamwall.behoririka.mg";
+import { apiOrigin } from "@/lib/api";
 
 // Only allow watch pages: movie/<id> or serie/<id>/<season>/<episode>
 const PATH_RE = /^(movie|serie)\/\d+(\/\d+){0,2}$/;
@@ -16,6 +16,7 @@ export const Route = createFileRoute("/api/public/watch/$")({
         const client = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false }, global: { fetch: (input, init) => { const headers = new Headers(init?.headers); if (key.startsWith("sb_") && headers.get("Authorization") === `Bearer ${key}`) headers.delete("Authorization"); headers.set("apikey", key); return fetch(input, { ...init, headers }); } } });
         const { data, error } = await client.auth.getUser(decodeURIComponent(token));
         if (error || !data.user) return new Response("Connexion requise", { status: 401 });
+        const STREAM_ORIGIN = await apiOrigin(client as never);
         const splat = params._splat ?? "";
         if (!PATH_RE.test(splat)) {
           return new Response("Not found", { status: 404 });
