@@ -85,7 +85,7 @@ function CastRow({ nom, photo, role }: { nom: string; photo: string; role: strin
     .join("")
     .toUpperCase();
   return (
-    <div className="flex w-28 shrink-0 flex-col gap-2">
+    <div className="flex flex-col gap-2">
       <div className="aspect-square overflow-hidden rounded-full bg-card ring-1 ring-border">
         {photo ? (
           <img src={photo} alt={nom} loading="lazy" className="h-full w-full object-cover" />
@@ -140,24 +140,13 @@ function Detail() {
 
   return (
     <div className="min-h-screen">
-      <header className="relative z-20">
-        <div className="mx-auto flex max-w-7xl items-center px-4 py-4">
-          <Link to="/" className="font-display text-2xl font-bold">
-            Stream<span className="text-primary">Wall</span>
-          </Link>
-          <Link to="/" className="chip ml-auto">
-            ← Retour
-          </Link>
-        </div>
-      </header>
-
       {/* Hero */}
       <section className="relative overflow-hidden">
         {item.backdrop && (
           <img src={item.backdrop} alt="" className="absolute inset-0 h-full w-full object-cover opacity-40" />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-background/20" />
-        <div className="relative mx-auto flex max-w-7xl flex-col gap-8 px-4 pb-10 pt-24 md:flex-row md:pt-40">
+        <div className="relative mx-auto flex max-w-7xl flex-col gap-8 px-4 pb-10 pt-16 md:flex-row md:pt-28">
           {item.poster && (
             <img
               src={item.poster}
@@ -207,22 +196,6 @@ function Detail() {
         </div>
       </section>
 
-      {/* Trailer */}
-      {item.trailer && (
-        <section className="mx-auto max-w-7xl px-4 py-10">
-          <h2 className="mb-4 font-display text-xl font-semibold">Bande-annonce</h2>
-          <div className="aspect-video w-full overflow-hidden rounded-xl ring-1 ring-border">
-            <iframe
-              src={`https://www.youtube.com/embed/${item.trailer}`}
-              title={`Bande-annonce — ${item.titre}`}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-              className="h-full w-full"
-            />
-          </div>
-        </section>
-      )}
-
       {/* Episodes */}
       {data.episodes.length > 0 && (
         <section className="mx-auto max-w-7xl px-4 py-10">
@@ -247,7 +220,7 @@ function Detail() {
       {data.cast.length > 0 && (
         <section className="mx-auto max-w-7xl px-4 py-10">
           <h2 className="mb-4 font-display text-xl font-semibold">Casting</h2>
-          <div className="flex gap-5 overflow-x-auto pb-2">
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(7rem,1fr))] gap-5">
             {data.cast.map((c, i) => (
               <CastRow key={i} nom={c.nom} photo={c.photo} role={c.role} />
             ))}
