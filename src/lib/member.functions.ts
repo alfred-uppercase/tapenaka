@@ -81,7 +81,7 @@ export const homeExtras = createServerFn({ method: "GET" }).middleware([requireS
     try {
       const res = await fetch(`${O}/api/api_slider.php`, { signal: AbortSignal.timeout(12_000) });
       if (!res.ok) return [];
-      const json = await res.json() as { items?: Array<Record<string, unknown>> };
+      const json = await res.json() as { items?: Array<{ id?: unknown; titre?: unknown; poster?: unknown; qualite?: unknown; langue?: unknown; genre?: unknown; type?: unknown; annee?: unknown; descr?: unknown; backdrop?: unknown; baggio?: unknown }> };
       return (json.items ?? []).slice(0, 8).map(r => { const genre = (r.genre as string) || null; const t = r.type === "film" ? "film" : /anim/i.test(genre ?? "") ? "anime" : "serie";
         return { id: String(r.id), titre: String(r.titre ?? ""), poster: (r.poster as string) || null, qualite: (r.qualite as string) || null, langue: (r.langue as string) || null, item_type: t, saison: null, genre, annee: r.annee ? Number(r.annee) : null, descr: (r.descr as string) || null, backdrop: (r.backdrop as string) || (r.baggio as string) || null } as Slide; });
     } catch { return []; }
