@@ -35,7 +35,7 @@ function Home() {
   const { data } = useSuspenseQuery(rankingsQuery);
   const extras = useQuery(homeExtrasQuery);
   return <main className="mx-auto max-w-7xl px-4 py-10">
-    {!!(extras.data?.slider.length || extras.data?.latest.length) && <Slider items={extras.data.slider.length ? extras.data.slider : extras.data.latest.map(x => ({ ...x, descr: null, backdrop: null }))} />}
+    {extras.data && !!(extras.data.slider.length || extras.data.latest.length) && <Slider items={extras.data.slider.length ? extras.data.slider : extras.data.latest.map(x => ({ ...x, descr: null, backdrop: null }))} />}
     <section className="mb-12"><h2 className="mb-6 font-display text-2xl">Derniers ajouts</h2>
       {extras.isLoading ? <p className="text-muted-foreground">Chargement…</p> : extras.data?.latest.length ? <Grid items={extras.data.latest} /> : <p className="text-muted-foreground">Indisponible pour le moment.</p>}</section>
     {!!extras.data?.forYou.length && <section className="mb-12"><h2 className="mb-6 font-display text-2xl">Uniquement pour toi</h2><Grid items={extras.data.forYou} /></section>}
