@@ -13,3 +13,4 @@
 - Enrich the current upstream catalogue with detail metadata in bounded batches because the home API omits genre and year.
 - Store profiles, private favorites and watch events in Cloud; rank distinct film viewers over rolling seven-day and thirty-day periods to avoid repeated-click inflation.
 - Set a short-lived HttpOnly same-origin watch cookie after an authenticated action because iframe requests cannot attach the app bearer header.
+- Upstream API origin is read from app_settings (key api_origin) on every server call so admins can switch domains without a deploy.
