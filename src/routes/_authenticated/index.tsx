@@ -9,7 +9,8 @@ import { typeLabel } from "@/components/Poster";
 function Slider({ items }: { items: Item[] }) {
   const [i, setI] = useState(0);
   useEffect(() => { const t = setInterval(() => setI(v => (v + 1) % items.length), 6000); return () => clearInterval(t); }, [items.length]);
-  const it = items[i];
+  const it = items[i] ?? items[0];
+  if (!it) return null;
   return <section className="relative mb-12 overflow-hidden rounded-2xl border border-border bg-card">
     {items.map((x, k) => <img key={x.id} src={x.poster ?? ""} alt="" className={`absolute inset-0 h-full w-full scale-110 object-cover blur-2xl transition-opacity duration-700 ${k === i ? "opacity-40" : "opacity-0"}`} />)}
     <div className="absolute inset-0 bg-gradient-to-r from-background via-background/70 to-transparent" />
