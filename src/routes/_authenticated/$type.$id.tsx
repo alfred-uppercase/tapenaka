@@ -9,9 +9,9 @@ import { prepareWatch } from "@/lib/member.functions";
 import { toast } from "sonner";
 import { setWatching } from "@/lib/presence";
 
-function watchUrl(type: string, tmdbId: string | number, saison?: string | null) {
-  if (type === "film") return `/api/public/watch/movie/${tmdbId}`;
-  return `/api/public/watch/serie/${tmdbId}/${saison || "1"}/1`;
+function watchUrl(type: string, id: string | number, saison?: string | null) {
+  if (type === "film") return `/api/public/watch/film/${id}`;
+  return `/api/public/watch/tvs/${id}/${saison || "1"}/1`;
 }
 
 function Modal({
@@ -168,7 +168,7 @@ function Detail() {
             {item.genre && <p className="text-sm text-muted-foreground">{item.genre}</p>}
             {item.descr && <p className="max-w-3xl text-sm leading-relaxed text-foreground/90">{item.descr}</p>}
             <div className="mt-2 flex flex-wrap gap-3">
-              {item.tmdbId && (
+              {item.id && (
                 <Button
                   disabled={preparing}
                   onClick={async () => {
@@ -253,10 +253,10 @@ function Detail() {
       )}
 
       {/* Watch modal (fullscreen) */}
-      {modal === "watch" && item.tmdbId && (
+      {modal === "watch" && item.id && (
         <Modal onClose={() => { setWatching(null); setModal(null); }} title={`Vous regardez ${item.titre}`} fullScreen>
           <iframe
-            src={watchUrl(item.type, item.tmdbId, item.saison)}
+            src={watchUrl(type === "film" ? "film" : "serie", item.id, item.saison)}
             title={`Regarder — ${item.titre}`}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen

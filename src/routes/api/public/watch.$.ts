@@ -3,8 +3,8 @@ import { createClient } from "@supabase/supabase-js";
 
 import { apiOrigin } from "@/lib/api";
 
-// Only allow watch pages: movie/<id> or serie/<id>/<season>/<episode>
-const PATH_RE = /^(movie|serie)\/\d+(\/\d+){0,2}$/;
+// Only allow watch pages: film/<id> or tvs/<id>/<season>/<episode>
+const PATH_RE = /^(film\/\d+|tvs\/\d+(\/\d+){0,2})$/;
 
 export const Route = createFileRoute("/api/public/watch/$")({
   server: {
