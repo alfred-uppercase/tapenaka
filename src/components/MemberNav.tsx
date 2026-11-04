@@ -78,7 +78,6 @@ export function MemberNav() {
               : <span className="grid size-10 place-items-center rounded-full bg-accent text-primary"><UserRound className="size-5" /></span>}
             <div className="min-w-0">
               <p className="truncate font-semibold">{data?.profile.username || "Mon profil"}</p>
-              <p className="truncate text-xs text-muted-foreground">{data?.profile.email ?? ""}</p>
             </div>
           </div>
           <nav className="flex-1 space-y-1 overflow-y-auto p-3" aria-label="Menu mobile">
