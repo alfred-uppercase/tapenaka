@@ -46,6 +46,7 @@ export const prepareWatch = createServerFn({ method: "POST" }).middleware([requi
   setCookie("streamwall_watch", token, { httpOnly: true, secure: new URL(getRequest().url).protocol === "https:", sameSite: "strict", path: "/api/public/watch", maxAge: 300 });
   return true;
 });
+export type Slide = Item & { descr: string | null; backdrop: string | null };
 type Row = { id?: unknown; titre?: unknown; poster?: unknown; qualite?: unknown; langue?: unknown; genre?: unknown; source?: unknown; categorie?: unknown; annee?: unknown };
 export const homeExtras = createServerFn({ method: "GET" }).middleware([requireSupabaseAuth]).handler(async ({ context }) => {
   const O = await apiOrigin(context.supabase);
@@ -76,8 +77,17 @@ export const homeExtras = createServerFn({ method: "GET" }).middleware([requireS
     for (let i = 0; out.length < 12 && i < 20; i++) for (const l of lists) { const it = l[i]; if (!it) continue; const k = `${it.item_type}:${it.id}`; if (seen.has(k) || ids.has(k)) continue; ids.add(k); out.push(it); }
     return out;
   })();
-  const [latest, forYou] = await Promise.all([latestP, forYouP]);
-  return { latest, forYou };
+  const sliderP = (async (): Promise<Slide[]> => {
+    try {
+      const res = await fetch(`${O}/api/api_slider.php`, { signal: AbortSignal.timeout(12_000) });
+      if (!res.ok) return [];
+      const json = await res.json() as { items?: Array<{ id?: unknown; titre?: unknown; poster?: unknown; qualite?: unknown; langue?: unknown; genre?: unknown; type?: unknown; annee?: unknown; descr?: unknown; backdrop?: unknown; baggio?: unknown }> };
+      return (json.items ?? []).slice(0, 8).map(r => { const genre = (r.genre as string) || null; const t = r.type === "film" ? "film" : /anim/i.test(genre ?? "") ? "anime" : "serie";
+        return { id: String(r.id), titre: String(r.titre ?? ""), poster: (r.poster as string) || null, qualite: (r.qualite as string) || null, langue: (r.langue as string) || null, item_type: t, saison: null, genre, annee: r.annee ? Number(r.annee) : null, descr: (r.descr as string) || null, backdrop: (r.backdrop as string) || (r.baggio as string) || null } as Slide; });
+    } catch { return []; }
+  })();
+  const [latest, forYou, slider] = await Promise.all([latestP, forYouP, sliderP]);
+  return { latest, forYou, slider };
 });
 
 export const getApiOrigin = createServerFn({ method: "GET" }).middleware([requireSupabaseAuth]).handler(async ({ context }) => apiOrigin(context.supabase));
