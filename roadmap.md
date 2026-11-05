@@ -1,4 +1,5 @@
 # StreamWall
+- [ ] Corriger le menu mobile, la lisibilité du bouton bande-annonce et ajouter le chargement des pages ; vérifier en navigateur
 - [x] Connexion obligatoire, inscription et récupération de mot de passe
 - [x] Profils avec pseudo et avatar, favoris privés
 - [x] Catalogue, recherche et filtres, suggestions aléatoires
