@@ -1,5 +1,6 @@
 import { useRouterState } from "@tanstack/react-router";
 import { LoaderCircle } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export function PageLoading() {
   return (
@@ -13,6 +14,8 @@ export function PageLoading() {
 }
 
 export function PageLoadingIndicator() {
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => setHydrated(true), []);
   const loading = useRouterState({ select: state => state.isLoading });
-  return loading ? <PageLoading /> : null;
+  return hydrated && loading ? <PageLoading /> : null;
 }
