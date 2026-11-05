@@ -1,5 +1,5 @@
 # StreamWall
-- [ ] Corriger le menu mobile, la lisibilité du bouton bande-annonce et ajouter le chargement des pages ; vérifier en navigateur
+- [x] Menu mobile opaque non tronqué, bouton bande-annonce blanc et chargement des pages ; vérifiés avec session en navigateur mobile et desktop
 - [x] Connexion obligatoire, inscription et récupération de mot de passe
 - [x] Profils avec pseudo et avatar, favoris privés
 - [x] Catalogue, recherche et filtres, suggestions aléatoires
