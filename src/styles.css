@@ -47,6 +47,8 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-scrim: var(--scrim);
+  --color-media-foreground: var(--media-foreground);
   --color-ring-offset-background: var(--background);
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
@@ -64,6 +66,8 @@
 }
 
 :root {
+  --scrim: oklch(0 0 0);
+  --media-foreground: oklch(1 0 0);
   --radius: 0.625rem;
   --background: oklch(0.14 0.01 260);
   --foreground: oklch(0.96 0.005 260);
@@ -100,6 +104,8 @@
 }
 
 .dark {
+  --scrim: oklch(0 0 0);
+  --media-foreground: oklch(1 0 0);
   --background: oklch(0.129 0.042 264.695);
   --foreground: oklch(0.984 0.003 247.858);
   --card: oklch(0.208 0.042 265.755);

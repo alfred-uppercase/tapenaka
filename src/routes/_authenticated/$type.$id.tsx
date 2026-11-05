@@ -184,8 +184,9 @@ function Detail() {
               )}
               {item.trailer && (
                 <Button
+                  variant="secondary"
                   onClick={() => setModal("trailer")}
-                  className="flex items-center gap-2 rounded-full bg-card px-6 py-3 font-semibold ring-1 ring-border transition hover:bg-accent"
+                  className="flex items-center gap-2 rounded-full bg-card px-6 py-3 font-semibold text-media-foreground ring-1 ring-border transition hover:bg-accent hover:text-media-foreground"
                 >
                   🎬 Bande-annonce
                 </Button>
