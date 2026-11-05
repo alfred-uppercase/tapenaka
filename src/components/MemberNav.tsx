@@ -2,6 +2,7 @@ import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Heart, LayoutGrid, LogOut, Menu, Shield, Sparkles, UserRound, X } from "lucide-react";
+import { Button } from "./ui/button";
 import { memberQuery } from "@/lib/member";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -38,7 +39,7 @@ export function MemberNav() {
     if (error) { toast.error("Déconnexion impossible."); return; }
     await navigate({ to: "/auth", replace: true });
   }
-  const links = [...LINKS, ...(isAdmin ? [{ to: "/admin", label: "Admin", icon: Shield }] : [])] as const;
+  const links = [...LINKS, ...(isAdmin ? [{ to: "/admin", label: "Admin", icon: Shield }] : [])];
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:py-4">
@@ -49,7 +50,8 @@ export function MemberNav() {
         <Link to="/" className="min-w-0 truncate font-display text-xl font-bold sm:text-2xl">Stream<span className="text-primary">Wall</span></Link>
         <nav className="ml-4 hidden items-center gap-1 sm:flex" aria-label="Menu principal">
           {links.map(({ to, label }) => (
-            <Link key={to} to={to} activeOptions={to === "/" ? { exact: true } : undefined}
+            <Link key={to} to={to}
+              activeOptions={to === "/" ? { exact: true } : {}}
               className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground data-[status=active]:bg-accent data-[status=active]:text-primary">
               {label}
             </Link>
@@ -82,7 +84,8 @@ export function MemberNav() {
           </div>
           <nav className="flex-1 space-y-1 overflow-y-auto p-3" aria-label="Menu mobile">
             {links.map(({ to, label, icon: Icon }) => (
-              <Link key={to} to={to} activeOptions={to === "/" ? { exact: true } : undefined}
+              <Link key={to} to={to}
+                activeOptions={to === "/" ? { exact: true } : {}}
                 className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground data-[status=active]:bg-accent data-[status=active]:text-primary">
                 <Icon className="size-5 shrink-0" />{label}
               </Link>
