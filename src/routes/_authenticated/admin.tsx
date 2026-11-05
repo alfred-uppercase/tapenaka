@@ -16,7 +16,7 @@ export const Route = createFileRoute("/_authenticated/admin")({
 const typeName = { film: "Film", serie: "Série", anime: "Anime" } as const;
 function ItemLine({ item, extra }: { item: Item; extra?: string }) {
   return <Link to="/$type/$id" params={{ type: item.item_type, id: String(item.id) }} className="flex items-center gap-3 rounded-lg p-2 hover:bg-accent">
-    {item.poster ? <img src={item.poster} alt="" className="h-14 w-10 rounded object-cover" /> : <div className="h-14 w-10 rounded bg-muted" />}
+    {item.poster ? <img src={item.poster} alt="" loading="lazy" decoding="async" className="h-14 w-10 rounded object-cover" /> : <div className="h-14 w-10 rounded bg-muted" />}
     <div className="min-w-0 flex-1"><p className="truncate font-medium">{item.titre}</p><p className="text-xs text-muted-foreground">{typeName[item.item_type] ?? item.item_type}{item.saison ? ` · ${item.saison}` : ""}</p></div>
     {extra && <span className="text-sm text-muted-foreground">{extra}</span>}
   </Link>;

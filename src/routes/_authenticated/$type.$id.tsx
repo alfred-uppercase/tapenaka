@@ -143,7 +143,7 @@ function Detail() {
       {/* Hero */}
       <section className="relative overflow-hidden">
         {item.backdrop && (
-          <img src={item.backdrop} alt="" className="absolute inset-0 h-full w-full object-cover opacity-40" />
+          <img src={item.backdrop} alt="" loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover opacity-40" />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-background/20" />
         <div className="relative mx-auto flex max-w-7xl flex-col gap-8 px-4 pb-10 pt-16 md:flex-row md:pt-28">
@@ -151,6 +151,8 @@ function Detail() {
             <img
               src={item.poster}
               alt={item.titre}
+              loading="lazy"
+              decoding="async"
               className="hidden w-56 shrink-0 self-start rounded-xl shadow-2xl ring-1 ring-border md:block"
             />
           )}
