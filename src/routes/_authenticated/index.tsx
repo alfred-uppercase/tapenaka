@@ -13,7 +13,7 @@ function Slider({ items }: { items: Slide[] }) {
   const it = items[i] ?? items[0];
   if (!it) return null;
   return <section className="relative mb-12 overflow-hidden rounded-2xl border border-border bg-card">
-    {items.map((x, k) => <img key={x.id} src={x.backdrop ?? x.poster ?? ""} alt="" className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-1000 ${x.backdrop ? "" : "scale-110 blur-2xl"} ${k === i ? "opacity-60" : "opacity-0"}`} />)}
+    {items.map((x, k) => <img key={x.id} src={x.backdrop ?? x.poster ?? ""} alt="" loading="lazy" decoding="async" className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-1000 ${x.backdrop ? "" : "scale-110 blur-2xl"} ${k === i ? "opacity-60" : "opacity-0"}`} />)}
     <div className="absolute inset-0 bg-gradient-to-r from-background via-background/70 to-transparent" />
     <div className="relative flex min-h-[420px] items-center gap-8 p-6 md:p-10">
       <div key={it.id} className="flex flex-1 flex-col gap-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
@@ -24,7 +24,7 @@ function Slider({ items }: { items: Slide[] }) {
         <div className="flex gap-2">{it.qualite && <span className="badge-primary">{it.qualite}</span>}{it.langue && <span className="badge-muted">{it.langue}</span>}</div>
         <Button asChild className="w-fit rounded-full"><Link to="/$type/$id" params={{ type: it.item_type, id: String(it.id) }}>▶ Voir le titre</Link></Button>
       </div>
-      {it.poster && <img key={`p${it.id}`} src={it.poster} alt={it.titre} className="hidden w-44 rounded-xl shadow-2xl ring-1 ring-border animate-in fade-in zoom-in-95 duration-500 md:block" />}
+      {it.poster && <img key={`p${it.id}`} src={it.poster} alt={it.titre} loading="lazy" decoding="async" className="hidden w-44 rounded-xl shadow-2xl ring-1 ring-border animate-in fade-in zoom-in-95 duration-500 md:block" />}
     </div>
     <div className="absolute bottom-4 left-6 flex gap-2 md:left-10">{items.map((x, k) => <button key={x.id} aria-label={`Afficher ${x.titre}`} onClick={() => setI(k)} className={`h-1.5 rounded-full transition-all ${k === i ? "w-8 bg-primary" : "w-3 bg-muted-foreground/50"}`} />)}</div>
   </section>;
