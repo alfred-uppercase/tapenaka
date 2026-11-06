@@ -86,6 +86,7 @@ export function MemberNav() {
           <Button variant="ghost" size="icon" aria-label="Se déconnecter" title="Se déconnecter" onClick={logout}><LogOut /></Button>
         </div>
       </div>
+      <PageLoadingIndicator />
     </header>
   );
 }
