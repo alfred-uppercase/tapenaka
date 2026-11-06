@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { fetchDetails, itemsQuery, type Item } from "@/lib/api";
 import { Poster, typeLabel } from "@/components/Poster";
 import { FavoriteButton } from "@/components/FavoriteButton";
@@ -35,20 +36,21 @@ function Modal({
     };
   }, [onClose]);
 
-  return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-background/95 backdrop-blur-sm" role="dialog" aria-modal="true">
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex flex-col bg-background/40 backdrop-blur-xl" role="dialog" aria-modal="true" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="flex items-center gap-4 border-b border-border px-4 py-3">
         <h2 className="truncate font-display text-lg font-semibold">{title}</h2>
         <Button
           onClick={onClose}
           aria-label="Fermer"
-          className="ml-auto flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-card text-xl leading-none ring-1 ring-border transition hover:bg-accent"
+          className="ml-auto flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-card text-xl leading-none text-foreground ring-1 ring-border transition hover:bg-accent"
         >
           ×
         </Button>
       </div>
       <div className={fullScreen ? "flex-1" : "mx-auto flex w-full max-w-5xl flex-1 items-center p-4"}>{children}</div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 

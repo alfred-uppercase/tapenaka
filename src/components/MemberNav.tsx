@@ -1,3 +1,4 @@
+import { PageLoadingIndicator } from "@/components/PageLoading";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
@@ -85,6 +86,7 @@ export function MemberNav() {
           <Button variant="ghost" size="icon" aria-label="Se déconnecter" title="Se déconnecter" onClick={logout}><LogOut /></Button>
         </div>
       </div>
+      <PageLoadingIndicator />
     </header>
   );
 }
