@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { prepareWatch } from "@/lib/member.functions";
 import { toast } from "sonner";
 import { setWatching } from "@/lib/presence";
+import { Comments } from "@/components/Comments";
 
 function watchUrl(type: string, id: string | number, saison?: string | null) {
   if (type === "film") return `/api/public/watch/film/${id}`;
@@ -256,6 +257,8 @@ function Detail() {
           </div>
         </section>
       )}
+
+      {mounted && <Comments itemType={type} itemId={id} />}
 
       {/* Watch modal (fullscreen) */}
       {modal === "watch" && item.id && (
