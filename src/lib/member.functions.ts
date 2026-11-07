@@ -3,6 +3,8 @@ import { getRequest, setCookie } from "@tanstack/react-start/server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import { apiOrigin, type Item } from "./api";
+import { optionalSupabaseAuth } from "./optional-auth";
+import { fillTemplate, playerTemplates, PLAYER_KEYS, TEMPLATE_RE } from "./players";
 
 const itemSchema = z.object({ id: z.string(), titre: z.string(), poster: z.string().nullable(), qualite: z.string().nullable(), langue: z.string().nullable(), item_type: z.enum(["film", "serie", "anime"]), saison: z.string().nullable(), genre: z.string().nullable().optional(), annee: z.number().nullable().optional() });
 export const clearWatch = createServerFn({ method: "POST" }).handler(() => {
@@ -31,7 +33,8 @@ export const toggleFavorite = createServerFn({ method: "POST" }).middleware([req
   if (error) throw error;
   return true;
 });
-export const rankings = createServerFn({ method: "GET" }).middleware([requireSupabaseAuth]).handler(async ({ context }) => {
+export const rankings = createServerFn({ method: "GET" }).middleware([optionalSupabaseAuth]).handler(async ({ context }) => {
+  if (!context.userId) return { trend: [], week: [] } as { trend: { item: Item; views: number }[]; week: { item: Item; views: number }[] };
   const [trend, week] = await Promise.all([context.supabase.rpc("film_rankings", { days: 30 }), context.supabase.rpc("film_rankings", { days: 7 })]);
   if (trend.error) throw trend.error;
   if (week.error) throw week.error;
@@ -48,7 +51,7 @@ export const prepareWatch = createServerFn({ method: "POST" }).middleware([requi
 });
 export type Slide = Item & { descr: string | null; backdrop: string | null };
 type Row = { id?: unknown; titre?: unknown; poster?: unknown; qualite?: unknown; langue?: unknown; genre?: unknown; source?: unknown; categorie?: unknown; annee?: unknown };
-export const homeExtras = createServerFn({ method: "GET" }).middleware([requireSupabaseAuth]).handler(async ({ context }) => {
+export const homeExtras = createServerFn({ method: "GET" }).middleware([optionalSupabaseAuth]).handler(async ({ context }) => {
   const O = await apiOrigin(context.supabase);
   const latestP = (async (): Promise<Item[]> => {
     try {
@@ -61,7 +64,8 @@ export const homeExtras = createServerFn({ method: "GET" }).middleware([requireS
   })();
   // "Uniquement pour toi": related titles of the user's 4 most recent distinct watches, excluding already watched ones.
   const forYouP = (async (): Promise<Item[]> => {
-    const { data: rows } = await context.supabase.from("watch_events").select("item_id,item_type,item").eq("user_id", context.userId).order("viewed_at", { ascending: false }).limit(50);
+    if (!context.userId) return [];
+    const { data: rows } = await context.supabase.from("watch_events").select("item_id,item_type,item").eq("user_id", context.userId!).order("viewed_at", { ascending: false }).limit(50);
     if (!rows?.length) return [];
     const seen = new Set(rows.map(r => `${r.item_type}:${r.item_id}`));
     const sources = [...new Map(rows.map(r => [`${r.item_type}:${r.item_id}`, r])).values()].slice(0, 4);
@@ -97,6 +101,35 @@ export const setApiOrigin = createServerFn({ method: "POST" }).middleware([requi
     const { data: isAdmin } = await context.supabase.rpc("has_role", { _user_id: context.userId, _role: "admin" });
     if (!isAdmin) throw new Error("Accès réservé aux administrateurs");
     const { error } = await context.supabase.from("app_settings").upsert({ key: "api_origin", value: data.origin.replace(/\/+$/, ""), updated_at: new Date().toISOString() });
+    if (error) throw error;
+    return true;
+  });
+
+/** Members get the member player (and are counted in rankings); guests get the ad-supported player. */
+export const openPlayer = createServerFn({ method: "POST" }).middleware([optionalSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ item: itemSchema, tmdb: z.string().regex(/^\d*$/).max(20).nullable(), season: z.number().int().min(1).max(500), episode: z.number().int().min(1).max(5000) }).parse(d))
+  .handler(async ({ context, data }) => {
+    const t = await playerTemplates(context.supabase);
+    const member = !!context.userId;
+    const tpl = member ? (data.item.item_type === "film" ? t.player_member_film : t.player_member_serie) : (data.item.item_type === "film" ? t.player_guest_film : t.player_guest_serie);
+    const path = fillTemplate(tpl, { id: data.item.id, tmdb: data.tmdb, s: data.season, e: data.episode });
+    if (!path) throw new Error("Lecteur indisponible pour ce titre");
+    if (member) {
+      const { error } = await context.supabase.from("watch_events").insert({ user_id: context.userId!, item_id: data.item.id, item_type: data.item.item_type, item: data.item });
+      if (error) throw error;
+      setCookie("streamwall_watch", context.token!, { httpOnly: true, secure: new URL(getRequest().url).protocol === "https:", sameSite: "strict", path: "/api/public/watch", maxAge: 300 });
+    }
+    return { url: `/api/public/watch/${path}`, member };
+  });
+
+export const getPlayers = createServerFn({ method: "GET" }).middleware([requireSupabaseAuth]).handler(async ({ context }) => playerTemplates(context.supabase));
+export const setPlayers = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object(Object.fromEntries(PLAYER_KEYS.map(k => [k, z.string().max(120).regex(TEMPLATE_RE, "Chemin invalide, ex. /film/{id}")]))).parse(d) as Record<(typeof PLAYER_KEYS)[number], string>)
+  .handler(async ({ context, data }) => {
+    const { data: isAdmin } = await context.supabase.rpc("has_role", { _user_id: context.userId, _role: "admin" });
+    if (!isAdmin) throw new Error("Accès réservé aux administrateurs");
+    const now = new Date().toISOString();
+    const { error } = await context.supabase.from("app_settings").upsert(PLAYER_KEYS.map(k => ({ key: k, value: data[k], updated_at: now })));
     if (error) throw error;
     return true;
   });

@@ -55,7 +55,7 @@ function Modal({
   );
 }
 
-export const Route = createFileRoute("/_authenticated/$type/$id")({
+export const Route = createFileRoute("/_public/$type/$id")({
   loader: ({ params }) => fetchDetails({ data: { type: params.type, id: params.id } }),
   head: ({ loaderData }) => {
     const it = loaderData?.item;

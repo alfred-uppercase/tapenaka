@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { queryOptions } from "@tanstack/react-query";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { optionalSupabaseAuth } from "./optional-auth";
 
 export type ItemType = "film" | "serie" | "anime";
 export type Item = {
@@ -52,7 +52,7 @@ export async function apiOrigin(sb: { from: (t: "app_settings") => any }): Promi
 }
 
 export const fetchItems = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([optionalSupabaseAuth])
   .inputValidator((d: { type: string; q: string }) => ({
     type: ["all", "film", "serie", "anime"].includes(d.type) ? d.type : "all",
     q: String(d.q ?? "").slice(0, 100),
@@ -80,7 +80,7 @@ export const fetchItems = createServerFn({ method: "GET" })
   });
 
 export const fetchDetails = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([optionalSupabaseAuth])
   .inputValidator((d: { id: string; type: string }) => ({
     id: String(d.id).slice(0, 20),
     type: ["film", "serie", "anime"].includes(d.type) ? d.type : "film",
@@ -121,7 +121,7 @@ export function catalogueParams(f: CatalogueFilters) {
 }
 
 export const fetchCatalogue = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([optionalSupabaseAuth])
   .inputValidator((d: CatalogueFilters) => ({
     q: String(d.q ?? "").slice(0, 100).trim(),
     type: ["all", "film", "serie", "anime"].includes(d.type) ? d.type : "all",
@@ -147,7 +147,7 @@ export const fetchCatalogue = createServerFn({ method: "GET" })
   });
 
 export const fetchCatalogueGenres = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([optionalSupabaseAuth])
   .handler(async ({ context }) => {
     const res = await fetch(`${await apiOrigin(context.supabase)}/api/korotoko.php?filtres=1`, { signal: AbortSignal.timeout(15_000) });
     if (!res.ok) return [] as string[];
