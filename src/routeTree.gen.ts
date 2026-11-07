@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as PublicRouteRouteImport } from './routes/_public/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
@@ -23,6 +24,10 @@ import { Route as ApiPublicWatchSplatRouteImport } from './routes/api/public/wat
 
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PublicRouteRoute = PublicRouteRouteImport.update({
+  id: '/_public',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -51,24 +56,24 @@ const AuthenticatedProfilRoute = AuthenticatedProfilRouteImport.update({
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const PublicIndexRoute = PublicIndexRouteImport.update({
-  id: '/_public/',
+  id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => PublicRouteRoute,
 } as any)
 const PublicCatalogueRoute = PublicCatalogueRouteImport.update({
-  id: '/_public/catalogue',
+  id: '/catalogue',
   path: '/catalogue',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => PublicRouteRoute,
 } as any)
 const PublicSuggestionRoute = PublicSuggestionRouteImport.update({
-  id: '/_public/suggestion',
+  id: '/suggestion',
   path: '/suggestion',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => PublicRouteRoute,
 } as any)
 const PublicTypeIdRoute = PublicTypeIdRouteImport.update({
-  id: '/_public/$type/$id',
+  id: '/$type/$id',
   path: '/$type/$id',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => PublicRouteRoute,
 } as any)
 const ApiPublicWatchSplatRoute = ApiPublicWatchSplatRouteImport.update({
   id: '/api/public/watch/$',
@@ -103,6 +108,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/_public': typeof PublicRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
@@ -142,6 +148,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/_authenticated'
+    | '/_public'
     | '/auth'
     | '/reset-password'
     | '/_authenticated/admin'
@@ -156,12 +163,9 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  PublicRouteRoute: typeof PublicRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
-  PublicCatalogueRoute: typeof PublicCatalogueRoute
-  PublicSuggestionRoute: typeof PublicSuggestionRoute
-  PublicIndexRoute: typeof PublicIndexRoute
-  PublicTypeIdRoute: typeof PublicTypeIdRoute
   ApiPublicWatchSplatRoute: typeof ApiPublicWatchSplatRoute
 }
 
@@ -172,6 +176,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_public': {
+      id: '/_public'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof PublicRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -214,28 +225,28 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof PublicIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof PublicRouteRoute
     }
     '/_public/catalogue': {
       id: '/_public/catalogue'
       path: '/catalogue'
       fullPath: '/catalogue'
       preLoaderRoute: typeof PublicCatalogueRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof PublicRouteRoute
     }
     '/_public/suggestion': {
       id: '/_public/suggestion'
       path: '/suggestion'
       fullPath: '/suggestion'
       preLoaderRoute: typeof PublicSuggestionRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof PublicRouteRoute
     }
     '/_public/$type/$id': {
       id: '/_public/$type/$id'
       path: '/$type/$id'
       fullPath: '/$type/$id'
       preLoaderRoute: typeof PublicTypeIdRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof PublicRouteRoute
     }
     '/api/public/watch/$': {
       id: '/api/public/watch/$'
@@ -262,14 +273,29 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
-const rootRouteChildren: RootRouteChildren = {
-  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
-  AuthRoute: AuthRoute,
-  ResetPasswordRoute: ResetPasswordRoute,
+interface PublicRouteRouteChildren {
+  PublicCatalogueRoute: typeof PublicCatalogueRoute
+  PublicSuggestionRoute: typeof PublicSuggestionRoute
+  PublicIndexRoute: typeof PublicIndexRoute
+  PublicTypeIdRoute: typeof PublicTypeIdRoute
+}
+
+const PublicRouteRouteChildren: PublicRouteRouteChildren = {
   PublicCatalogueRoute: PublicCatalogueRoute,
   PublicSuggestionRoute: PublicSuggestionRoute,
   PublicIndexRoute: PublicIndexRoute,
   PublicTypeIdRoute: PublicTypeIdRoute,
+}
+
+const PublicRouteRouteWithChildren = PublicRouteRoute._addFileChildren(
+  PublicRouteRouteChildren,
+)
+
+const rootRouteChildren: RootRouteChildren = {
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  PublicRouteRoute: PublicRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   ApiPublicWatchSplatRoute: ApiPublicWatchSplatRoute,
 }
 export const routeTree = rootRouteImport

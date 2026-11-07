@@ -2,7 +2,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { adminOverview, adminUserHistory } from "@/lib/admin.functions";
-import { getApiOrigin, setApiOrigin } from "@/lib/member.functions";
+import { getApiOrigin, setApiOrigin, getPlayers, setPlayers } from "@/lib/member.functions";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import type { PlayerKey, PlayerTemplates } from "@/lib/players";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type { Item } from "@/lib/api";
@@ -36,6 +38,9 @@ function AdminPage() {
     <div className="grid gap-4 sm:grid-cols-3">
       {[["Utilisateurs", data.users.length], ["En ligne", online.length], ["En lecture", online.filter(u => u.current_item).length]].map(([l, v]) => <div key={l} className="rounded-xl border border-border bg-card p-5"><p className="text-sm text-muted-foreground">{l}</p><p className="font-display text-3xl font-bold">{v}</p></div>)}
     </div>
+    <Tabs defaultValue="users">
+    <TabsList className="h-auto flex-wrap"><TabsTrigger value="users">Utilisateurs</TabsTrigger><TabsTrigger value="stats">Les plus regardés</TabsTrigger><TabsTrigger value="api">API</TabsTrigger><TabsTrigger value="players">Lecteurs</TabsTrigger></TabsList>
+    <TabsContent value="users" className="mt-6">
     <div className="grid gap-6 lg:grid-cols-[1fr_1fr]">
       <section className="rounded-xl border border-border bg-card p-5">
         <h2 className="mb-3 font-display text-xl">Gestion des utilisateurs</h2>
@@ -56,13 +61,47 @@ function AdminPage() {
         </>}
       </section>
     </div>
-    <ApiSettings />
+    </TabsContent>
+    <TabsContent value="api" className="mt-6"><ApiSettings /></TabsContent>
+    <TabsContent value="players" className="mt-6"><PlayerSettings /></TabsContent>
+    <TabsContent value="stats" className="mt-6">
     <section className="rounded-xl border border-border bg-card p-5">
       <div className="mb-3 flex flex-wrap items-center gap-2"><h2 className="mr-auto font-display text-xl">Films et séries les plus regardés</h2>
         <Button variant={period === "top7" ? "default" : "ghost"} onClick={() => setPeriod("top7")}>7 jours</Button><Button variant={period === "top30" ? "default" : "ghost"} onClick={() => setPeriod("top30")}>30 jours</Button></div>
       {data[period].length ? <div className="grid gap-1 md:grid-cols-2">{data[period].map((r, i) => <ItemLine key={i} item={r.item} extra={`${r.viewers} spectateur(s) · ${r.plays} lecture(s)`} />)}</div> : <p className="text-muted-foreground">Aucun visionnage sur cette période.</p>}
     </section>
+    </TabsContent>
+    </Tabs>
   </main>;
+}
+
+const PLAYER_FIELDS: { key: PlayerKey; label: string; hint: string }[] = [
+  { key: "player_member_film", label: "Film — membres", hint: "ex. /film/{id}" },
+  { key: "player_member_serie", label: "Série — membres", hint: "ex. /tvs/{id}/{s}/{e}" },
+  { key: "player_guest_film", label: "Film — invités (avec publicité)", hint: "ex. /movie/{tmdb}" },
+  { key: "player_guest_serie", label: "Série — invités (avec publicité)", hint: "ex. /tv/{tmdb}/{s}/{e}" },
+];
+function PlayerSettings() {
+  const current = useQuery({ queryKey: ["players"], queryFn: () => getPlayers() });
+  const [edit, setEdit] = useState<Partial<PlayerTemplates>>({});
+  const [saving, setSaving] = useState(false);
+  if (!current.data) return <p className="text-muted-foreground">Chargement…</p>;
+  const v = { ...current.data, ...edit };
+  async function save(e: React.FormEvent) {
+    e.preventDefault(); setSaving(true);
+    try { await setPlayers({ data: v }); toast.success("Liens des lecteurs enregistrés"); setEdit({}); await current.refetch(); }
+    catch (err) { toast.error(err instanceof Error ? err.message : "Échec de l’enregistrement"); }
+    finally { setSaving(false); }
+  }
+  return <section className="rounded-xl border border-border bg-card p-5">
+    <h2 className="mb-1 font-display text-xl">Liens des lecteurs</h2>
+    <p className="mb-4 text-sm text-muted-foreground">Chemins ajoutés au domaine de l’API. Variables : {"{id}"} identifiant du site, {"{tmdb}"} identifiant TMDB, {"{s}"} saison, {"{e}"} épisode.</p>
+    <form onSubmit={save} className="grid gap-4 md:grid-cols-2">
+      {PLAYER_FIELDS.map(f => <label key={f.key} className="block text-sm"><span className="mb-1 block font-medium">{f.label}</span>
+        <input value={v[f.key]} onChange={e => setEdit(x => ({ ...x, [f.key]: e.target.value }))} placeholder={f.hint} className="w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-sm" /></label>)}
+      <div className="md:col-span-2"><Button type="submit" disabled={saving}>{saving ? "Enregistrement…" : "Enregistrer"}</Button></div>
+    </form>
+  </section>;
 }
 
 function ApiSettings() {
@@ -78,7 +117,7 @@ function ApiSettings() {
     finally { setSaving(false); }
   }
   return <section className="rounded-xl border border-border bg-card p-5">
-    <h2 className="mb-1 font-display text-xl">Paramètres</h2>
+    <h2 className="mb-1 font-display text-xl">Domaine de l’API</h2>
     <p className="mb-4 text-sm text-muted-foreground">Nom de domaine utilisé pour le catalogue, les détails et le lecteur.</p>
     <form onSubmit={save} className="flex flex-wrap gap-2">
       <input value={v} onChange={e => setValue(e.target.value)} placeholder="https://streamwall.behoririka.mg" className="min-w-64 flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm" />
