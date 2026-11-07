@@ -6,7 +6,7 @@ import { fetchCatalogue, fetchCatalogueGenres } from "@/lib/api";
 import { Poster } from "@/components/Poster";
 import { Button } from "@/components/ui/button";
 
-export const Route = createFileRoute("/_authenticated/catalogue")({ head: () => ({ meta: [{ title: "Catalogue — StreamWall" }, { name: "description", content: "Tout le catalogue de films, séries et animes : recherche, genre et année." }, { property: "og:title", content: "Catalogue — StreamWall" }, { property: "og:description", content: "Tout le catalogue de films, séries et animes : recherche, genre et année." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary_large_image" }] }), component: Catalogue });
+export const Route = createFileRoute("/_public/catalogue")({ head: () => ({ meta: [{ title: "Catalogue — StreamWall" }, { name: "description", content: "Tout le catalogue de films, séries et animes : recherche, genre et année." }, { property: "og:title", content: "Catalogue — StreamWall" }, { property: "og:description", content: "Tout le catalogue de films, séries et animes : recherche, genre et année." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary_large_image" }] }), component: Catalogue });
 
 const CURRENT_YEAR = new Date().getFullYear();
 const YEARS = Array.from({ length: CURRENT_YEAR - 1915 + 1 }, (_, i) => CURRENT_YEAR - i);

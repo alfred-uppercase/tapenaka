@@ -6,15 +6,12 @@ import { fetchDetails, itemsQuery, type Item } from "@/lib/api";
 import { Poster, typeLabel } from "@/components/Poster";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { Button } from "@/components/ui/button";
-import { prepareWatch } from "@/lib/member.functions";
+import { openPlayer } from "@/lib/member.functions";
+import { useIsMember } from "@/lib/session";
 import { toast } from "sonner";
 import { setWatching } from "@/lib/presence";
 import { Comments } from "@/components/Comments";
 
-function watchUrl(type: string, id: string | number, saison?: string | null) {
-  if (type === "film") return `/api/public/watch/film/${id}`;
-  return `/api/public/watch/tvs/${id}/${saison || "1"}/1`;
-}
 
 function Modal({
   onClose,
@@ -55,7 +52,7 @@ function Modal({
   );
 }
 
-export const Route = createFileRoute("/_authenticated/$type/$id")({
+export const Route = createFileRoute("/_public/$type/$id")({
   loader: ({ params }) => fetchDetails({ data: { type: params.type, id: params.id } }),
   head: ({ loaderData }) => {
     const it = loaderData?.item;
@@ -108,6 +105,8 @@ function Detail() {
   const item = data.item;
   const [modal, setModal] = useState<"watch" | "trailer" | null>(null);
   const [preparing, setPreparing] = useState(false);
+  const [playerUrl, setPlayerUrl] = useState<string | null>(null);
+  const { isMember } = useIsMember();
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
@@ -178,8 +177,8 @@ function Detail() {
                   disabled={preparing}
                   onClick={async () => {
                     setPreparing(true);
-                    try { const w = { id: String(item.id), titre: item.titre, poster: item.poster, qualite: item.qualite, langue: item.langue, item_type: type as Item["item_type"], saison: item.saison ?? null }; await prepareWatch({ data: w }); setWatching(w); setModal("watch"); }
-                    catch { toast.error("Impossible d’ouvrir le lecteur."); }
+                    try { const w = { id: String(item.id), titre: item.titre, poster: item.poster, qualite: item.qualite, langue: item.langue, item_type: type as Item["item_type"], saison: item.saison ?? null }; const r = await openPlayer({ data: { item: w, tmdb: item.tmdbId ? String(item.tmdbId) : null, season: Number(item.saison) || 1, episode: 1 } }); setPlayerUrl(r.url); if (r.member) setWatching(w); setModal("watch"); }
+                    catch (e) { toast.error(e instanceof Error && e.message.includes("indisponible") ? e.message : "Impossible d’ouvrir le lecteur."); }
                     finally { setPreparing(false); }
                   }}
                   className="flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-semibold text-primary-foreground transition hover:opacity-90"
@@ -196,8 +195,9 @@ function Detail() {
                   🎬 Bande-annonce
                 </Button>
               )}
-              <FavoriteButton item={{ id: String(item.id), titre: item.titre, poster: item.poster, qualite: item.qualite, langue: item.langue, item_type: type as Item["item_type"], saison: item.saison ?? null }} />
+              {isMember ? <FavoriteButton item={{ id: String(item.id), titre: item.titre, poster: item.poster, qualite: item.qualite, langue: item.langue, item_type: type as Item["item_type"], saison: item.saison ?? null }} /> : <Button asChild variant="secondary"><Link to="/auth">Se connecter pour les favoris</Link></Button>}
             </div>
+            {!isMember && <p className="text-xs text-muted-foreground">Invité : lecture avec publicités. <Link to="/auth" className="text-primary underline">Créez un compte</Link> pour regarder sans publicité.</p>}
           </div>
         </div>
       </section>
@@ -258,13 +258,13 @@ function Detail() {
         </section>
       )}
 
-      {mounted && <Comments itemType={type} itemId={id} />}
+      {mounted && (isMember ? <Comments itemType={type} itemId={id} /> : <section className="mx-auto max-w-7xl px-4 py-10"><h2 className="mb-3 font-display text-xl font-semibold">Commentaires</h2><Button asChild variant="outline"><Link to="/auth">Se connecter pour commenter</Link></Button></section>)}
 
       {/* Watch modal (fullscreen) */}
-      {modal === "watch" && item.id && (
-        <Modal onClose={() => { setWatching(null); setModal(null); }} title={`Vous regardez ${item.titre}`} fullScreen>
+      {modal === "watch" && playerUrl && (
+        <Modal onClose={() => { if (isMember) setWatching(null); setModal(null); }} title={`Vous regardez ${item.titre}`} fullScreen>
           <iframe
-            src={watchUrl(type === "film" ? "film" : "serie", item.id, item.saison)}
+            src={playerUrl}
             title={`Regarder — ${item.titre}`}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
