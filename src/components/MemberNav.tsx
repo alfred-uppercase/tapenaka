@@ -11,6 +11,8 @@ import { toast } from "sonner";
 import { clearWatch } from "@/lib/member.functions";
 import { amIAdmin } from "@/lib/admin.functions";
 import { beat, setWatching } from "@/lib/presence";
+import { useIsMember } from "@/lib/session";
+import { LogIn } from "lucide-react";
 
 const LINKS = [
   { to: "/", label: "Accueil", icon: Sparkles },
@@ -20,12 +22,13 @@ const LINKS = [
 ] as const;
 
 export function MemberNav() {
-  const { data } = useQuery(memberQuery); const client = useQueryClient(); const navigate = useNavigate();
-  const { data: isAdmin } = useQuery({ queryKey: ["is-admin"], queryFn: () => amIAdmin(), staleTime: 300_000 });
+  const { isMember } = useIsMember();
+  const { data } = useQuery({ ...memberQuery, enabled: isMember }); const client = useQueryClient(); const navigate = useNavigate();
+  const { data: isAdmin } = useQuery({ queryKey: ["is-admin"], queryFn: () => amIAdmin(), staleTime: 300_000, enabled: isMember });
   const path = useRouterState({ select: s => s.location.pathname });
   const [open, setOpen] = useState(false);
-  useEffect(() => { setWatching(null); setOpen(false); }, [path]);
-  useEffect(() => { const t = setInterval(beat, 30_000); return () => clearInterval(t); }, []);
+  useEffect(() => { if (isMember) setWatching(null); setOpen(false); }, [path, isMember]);
+  useEffect(() => { if (!isMember) return; const t = setInterval(beat, 30_000); return () => clearInterval(t); }, [isMember]);
   useEffect(() => {
     const viewport = window.matchMedia("(min-width: 768px)");
     const closeOnDesktop = () => { if (viewport.matches) setOpen(false); };
@@ -39,7 +42,7 @@ export function MemberNav() {
     if (error) { toast.error("Déconnexion impossible."); return; }
     await navigate({ to: "/auth", replace: true });
   }
-  const links = [...LINKS, ...(isAdmin ? [{ to: "/admin", label: "Admin", icon: Shield }] : [])];
+  const links = [...LINKS.filter(l => isMember || l.to !== "/favoris"), ...(isAdmin ? [{ to: "/admin", label: "Admin", icon: Shield }] : [])];
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:py-4">
@@ -51,12 +54,12 @@ export function MemberNav() {
             <div className="flex min-h-20 items-center border-b border-border px-5 pr-16">
               <SheetTitle className="font-display text-2xl font-bold">Stream<span className="text-primary">Wall</span></SheetTitle>
             </div>
-            <Button asChild variant="ghost" className="m-3 h-auto shrink-0 justify-start gap-3 rounded-lg px-3 py-4" >
+            {isMember ? <Button asChild variant="ghost" className="m-3 h-auto shrink-0 justify-start gap-3 rounded-lg px-3 py-4" >
               <Link to="/profil" onClick={() => setOpen(false)}>
                 {data?.profile.avatar ? <img src={data.profile.avatar} alt="" className="size-11 rounded-full object-cover" /> : <span className="grid size-11 place-items-center rounded-full bg-accent text-primary"><UserRound /></span>}
                 <span className="min-w-0 flex-1 truncate text-left font-semibold">{data?.profile.username || "Mon profil"}</span><ChevronRight className="text-muted-foreground" />
               </Link>
-            </Button>
+            </Button> : <Button asChild className="m-3 h-12 shrink-0 gap-2"><Link to="/auth" onClick={() => setOpen(false)}><LogIn />Se connecter</Link></Button>}
             <nav className="min-h-0 flex-1 space-y-2 overflow-y-auto border-t border-border p-3" aria-label="Menu mobile">
               {links.map(({ to, label, icon: Icon }) => (
                 <Button key={to} asChild variant="ghost" className="h-12 w-full justify-start gap-3 rounded-lg px-4 text-base text-muted-foreground has-[[data-status=active]]:text-primary">
@@ -67,7 +70,7 @@ export function MemberNav() {
               ))}
             </nav>
             <div className="shrink-0 border-t border-border p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-              <Button variant="ghost" className="h-12 w-full justify-start gap-3 text-muted-foreground" onClick={logout}><LogOut />Se déconnecter</Button>
+              {isMember && <Button variant="ghost" className="h-12 w-full justify-start gap-3 text-muted-foreground" onClick={logout}><LogOut />Se déconnecter</Button>}
             </div>
           </SheetContent>
         </Sheet>
@@ -82,8 +85,8 @@ export function MemberNav() {
           ))}
         </nav>
         <div className="ml-auto flex shrink-0 items-center gap-1">
-          <Button asChild variant="ghost"><Link to="/profil" aria-label="Mon profil">{data?.profile.avatar ? <img src={data.profile.avatar} alt="" className="size-7 rounded-full object-cover" /> : <UserRound />}<span className="hidden max-w-32 truncate md:inline">{data?.profile.username || "Mon profil"}</span></Link></Button>
-          <Button variant="ghost" size="icon" aria-label="Se déconnecter" title="Se déconnecter" onClick={logout}><LogOut /></Button>
+          {!isMember ? <Button asChild size="sm"><Link to="/auth"><LogIn />Se connecter</Link></Button> : <><Button asChild variant="ghost"><Link to="/profil" aria-label="Mon profil">{data?.profile.avatar ? <img src={data.profile.avatar} alt="" className="size-7 rounded-full object-cover" /> : <UserRound />}<span className="hidden max-w-32 truncate md:inline">{data?.profile.username || "Mon profil"}</span></Link></Button>
+          <Button variant="ghost" size="icon" aria-label="Se déconnecter" title="Se déconnecter" onClick={logout}><LogOut /></Button></>}
         </div>
       </div>
       <PageLoadingIndicator />
