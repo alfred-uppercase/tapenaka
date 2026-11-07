@@ -9,7 +9,8 @@
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
 
-- Keep viewing and discovery pages under the client-only authenticated layout; server functions and the watch proxy validate auth independently because UI gating does not protect endpoints.
+- Discovery and detail pages live under the client-only `_public` layout (guests allowed); account pages stay under `_authenticated`. Server functions use optionalSupabaseAuth or requireSupabaseAuth and the watch proxy checks member player paths itself, because UI gating does not protect endpoints.
+- Player link templates live in app_settings (player_member_*/player_guest_*) and are resolved server-side so the proxy only serves paths matching a configured template.
 - Enrich the current upstream catalogue with detail metadata in bounded batches because the home API omits genre and year.
 - Store profiles, private favorites and watch events in Cloud; rank distinct film viewers over rolling seven-day and thirty-day periods to avoid repeated-click inflation.
 - Set a short-lived HttpOnly same-origin watch cookie after an authenticated action because iframe requests cannot attach the app bearer header.
